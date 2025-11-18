@@ -9,11 +9,6 @@ from pydantic_settings import (
 
 
 class Config(BaseSettings):
-    max_activity_nesting_level: int = Field(
-        default=3,
-        alias="MAX_ACTIVITY_NESTING_LEVEL",
-    )
-
     postgres_db: str = Field(
         default="organization_catalog",
         alias="POSTGRES_DB",
