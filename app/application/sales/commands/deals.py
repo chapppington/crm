@@ -198,6 +198,7 @@ class UpdateDealStageCommandHandler(
             if is_rollback and role not in {
                 OrganizationMemberRole.ADMIN,
                 OrganizationMemberRole.OWNER,
+                OrganizationMemberRole.MANAGER,
             }:
                 raise DealStageRollbackNotAllowedException(
                     deal_id=command.deal_id,

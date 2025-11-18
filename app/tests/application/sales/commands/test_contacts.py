@@ -4,7 +4,10 @@ import pytest
 from faker import Faker
 
 from application.mediator import Mediator
-from application.organizations.commands import CreateOrganizationCommand
+from application.organizations.commands import (
+    AddMemberCommand,
+    CreateOrganizationCommand,
+)
 from application.sales.commands import (
     CreateContactCommand,
     CreateDealCommand,
@@ -13,6 +16,7 @@ from application.sales.commands import (
 from application.sales.queries import GetContactByIdQuery
 from domain.sales.entities import ContactEntity
 from domain.sales.exceptions.sales import (
+    AccessDeniedException,
     ContactHasActiveDealsException,
     ContactNotFoundException,
     EmptyContactNameException,
@@ -222,3 +226,146 @@ async def test_delete_contact_with_active_deals_fails(
         )
 
     assert exc_info.value.contact_id == contact_id
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("role", ["owner", "admin", "manager"])
+async def test_delete_contact_command_owner_admin_manager_can_delete_any_contact(
+    mediator: Mediator,
+    faker: Faker,
+    role: str,
+):
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name=faker.company()),
+    )
+    organization_id = org_result.oid
+    contact_owner_user_id = uuid4()
+    admin_user_id = uuid4()
+
+    await mediator.handle_command(
+        AddMemberCommand(
+            organization_id=organization_id,
+            user_id=admin_user_id,
+            role=role,
+        ),
+    )
+
+    contact_result, *_ = await mediator.handle_command(
+        CreateContactCommand(
+            organization_id=organization_id,
+            owner_user_id=contact_owner_user_id,
+            name=faker.name(),
+        ),
+    )
+    contact_id = contact_result.oid
+
+    await mediator.handle_command(
+        DeleteContactCommand(
+            contact_id=contact_id,
+            organization_id=organization_id,
+            user_id=admin_user_id,
+            user_role=role,
+        ),
+    )
+
+    with pytest.raises(ContactNotFoundException):
+        await mediator.handle_query(
+            GetContactByIdQuery(
+                contact_id=contact_id,
+                organization_id=organization_id,
+                user_id=admin_user_id,
+                user_role=role,
+            ),
+        )
+
+
+@pytest.mark.asyncio
+async def test_delete_contact_command_member_cannot_delete_other_user_contact(
+    mediator: Mediator,
+    faker: Faker,
+):
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name=faker.company()),
+    )
+    organization_id = org_result.oid
+    contact_owner_user_id = uuid4()
+    member_user_id = uuid4()
+
+    await mediator.handle_command(
+        AddMemberCommand(
+            organization_id=organization_id,
+            user_id=member_user_id,
+            role="member",
+        ),
+    )
+
+    contact_result, *_ = await mediator.handle_command(
+        CreateContactCommand(
+            organization_id=organization_id,
+            owner_user_id=contact_owner_user_id,
+            name=faker.name(),
+        ),
+    )
+    contact_id = contact_result.oid
+
+    with pytest.raises(AccessDeniedException) as exc_info:
+        await mediator.handle_command(
+            DeleteContactCommand(
+                contact_id=contact_id,
+                organization_id=organization_id,
+                user_id=member_user_id,
+                user_role="member",
+            ),
+        )
+
+    assert exc_info.value.resource_type == "Contact"
+    assert exc_info.value.resource_id == contact_id
+    assert exc_info.value.user_id == member_user_id
+
+
+@pytest.mark.asyncio
+async def test_delete_contact_command_member_can_delete_own_contact(
+    mediator: Mediator,
+    faker: Faker,
+):
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name=faker.company()),
+    )
+    organization_id = org_result.oid
+    member_user_id = uuid4()
+
+    await mediator.handle_command(
+        AddMemberCommand(
+            organization_id=organization_id,
+            user_id=member_user_id,
+            role="member",
+        ),
+    )
+
+    contact_result, *_ = await mediator.handle_command(
+        CreateContactCommand(
+            organization_id=organization_id,
+            owner_user_id=member_user_id,
+            name=faker.name(),
+        ),
+    )
+    contact_id = contact_result.oid
+
+    await mediator.handle_command(
+        DeleteContactCommand(
+            contact_id=contact_id,
+            organization_id=organization_id,
+            user_id=member_user_id,
+            user_role="member",
+        ),
+    )
+
+    with pytest.raises(ContactNotFoundException):
+        await mediator.handle_query(
+            GetContactByIdQuery(
+                contact_id=contact_id,
+                organization_id=organization_id,
+                user_id=member_user_id,
+                user_role="member",
+            ),
+        )

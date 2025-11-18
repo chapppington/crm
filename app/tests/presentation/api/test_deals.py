@@ -8,6 +8,15 @@ import pytest
 from faker import Faker
 from httpx import Response
 
+from application.mediator import Mediator
+from application.organizations.commands import (
+    AddMemberCommand,
+    CreateOrganizationCommand,
+)
+from application.sales.commands import (
+    CreateContactCommand,
+    CreateDealCommand,
+)
 from domain.sales.entities import ContactEntity
 
 
@@ -119,3 +128,51 @@ async def test_get_deal_by_id(
     assert json_response["data"]["title"] == title
     assert json_response["data"]["amount"] == 2000.0
     assert json_response["data"]["currency"] == "RUB"
+
+
+@pytest.mark.asyncio
+async def test_get_deal_by_id_from_another_organization_returns_404(
+    app: FastAPI,
+    org_client: TestClient,
+    mediator: Mediator,
+    authenticated_user,
+    faker: Faker,
+):
+    other_org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name=faker.company()),
+    )
+    other_organization_id = other_org_result.oid
+
+    other_user_id = authenticated_user.oid
+    await mediator.handle_command(
+        AddMemberCommand(
+            organization_id=other_organization_id,
+            user_id=other_user_id,
+            role="owner",
+        ),
+    )
+
+    contact_result, *_ = await mediator.handle_command(
+        CreateContactCommand(
+            organization_id=other_organization_id,
+            owner_user_id=other_user_id,
+            name=faker.name(),
+        ),
+    )
+
+    deal_result, *_ = await mediator.handle_command(
+        CreateDealCommand(
+            organization_id=other_organization_id,
+            contact_id=contact_result.oid,
+            owner_user_id=other_user_id,
+            title=faker.sentence(),
+            amount=1000.0,
+            currency="USD",
+        ),
+    )
+    other_deal_id = deal_result.oid
+
+    get_url = app.url_path_for("get_deal", deal_id=other_deal_id)
+    response: Response = org_client.get(url=get_url)
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND

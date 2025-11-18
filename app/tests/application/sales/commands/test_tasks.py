@@ -8,7 +8,10 @@ import pytest
 from faker import Faker
 
 from application.mediator import Mediator
-from application.organizations.commands import CreateOrganizationCommand
+from application.organizations.commands import (
+    AddMemberCommand,
+    CreateOrganizationCommand,
+)
 from application.sales.commands import (
     CreateContactCommand,
     CreateDealCommand,
@@ -18,6 +21,7 @@ from application.sales.commands import (
 from application.sales.queries import GetTaskByIdQuery
 from domain.sales.entities import TaskEntity
 from domain.sales.exceptions.sales import (
+    AccessDeniedException,
     EmptyTaskTitleException,
     InvalidTaskDueDateException,
 )
@@ -316,3 +320,289 @@ async def test_update_task_command_success(
     assert updated_task.description.as_generic_type() == new_description
     assert updated_task.due_date.as_generic_type() == new_due_date
     assert updated_task.is_done is True
+
+
+@pytest.mark.asyncio
+async def test_create_task_command_member_cannot_create_for_other_user_deal(
+    mediator: Mediator,
+    faker: Faker,
+):
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name=faker.company()),
+    )
+    organization_id = org_result.oid
+    owner_user_id = uuid4()
+    member_user_id = uuid4()
+
+    await mediator.handle_command(
+        AddMemberCommand(
+            organization_id=organization_id,
+            user_id=member_user_id,
+            role="member",
+        ),
+    )
+
+    contact_result, *_ = await mediator.handle_command(
+        CreateContactCommand(
+            organization_id=organization_id,
+            owner_user_id=owner_user_id,
+            name=faker.name(),
+        ),
+    )
+    contact_id = contact_result.oid
+
+    deal_result, *_ = await mediator.handle_command(
+        CreateDealCommand(
+            organization_id=organization_id,
+            contact_id=contact_id,
+            owner_user_id=owner_user_id,
+            title=faker.sentence(),
+            amount=1000.0,
+            currency="USD",
+        ),
+    )
+    deal_id = deal_result.oid
+
+    with pytest.raises(AccessDeniedException) as exc_info:
+        await mediator.handle_command(
+            CreateTaskCommand(
+                deal_id=deal_id,
+                title=faker.sentence(),
+                organization_id=organization_id,
+                user_id=member_user_id,
+                user_role="member",
+                description=faker.text(),
+                due_date=date.today() + timedelta(days=1),
+            ),
+        )
+
+    assert exc_info.value.resource_type == "Task"
+    assert exc_info.value.resource_id == deal_id
+    assert exc_info.value.user_id == member_user_id
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("role", ["owner", "admin", "manager"])
+async def test_update_task_command_owner_admin_manager_can_update_any_task(
+    mediator: Mediator,
+    faker: Faker,
+    role: str,
+):
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name=faker.company()),
+    )
+    organization_id = org_result.oid
+    task_owner_user_id = uuid4()
+    admin_user_id = uuid4()
+
+    await mediator.handle_command(
+        AddMemberCommand(
+            organization_id=organization_id,
+            user_id=admin_user_id,
+            role=role,
+        ),
+    )
+
+    contact_result, *_ = await mediator.handle_command(
+        CreateContactCommand(
+            organization_id=organization_id,
+            owner_user_id=task_owner_user_id,
+            name=faker.name(),
+        ),
+    )
+    contact_id = contact_result.oid
+
+    deal_result, *_ = await mediator.handle_command(
+        CreateDealCommand(
+            organization_id=organization_id,
+            contact_id=contact_id,
+            owner_user_id=task_owner_user_id,
+            title=faker.sentence(),
+            amount=1000.0,
+            currency="USD",
+        ),
+    )
+    deal_id = deal_result.oid
+
+    task_result, *_ = await mediator.handle_command(
+        CreateTaskCommand(
+            deal_id=deal_id,
+            title=faker.sentence(),
+            organization_id=organization_id,
+            user_id=task_owner_user_id,
+            user_role="owner",
+            description=faker.text(),
+            due_date=date.today() + timedelta(days=1),
+        ),
+    )
+    task_id = task_result.oid
+
+    new_title = faker.sentence()
+
+    await mediator.handle_command(
+        UpdateTaskCommand(
+            task_id=task_id,
+            organization_id=organization_id,
+            user_id=admin_user_id,
+            user_role=role,
+            title=new_title,
+        ),
+    )
+
+    updated_task = await mediator.handle_query(
+        GetTaskByIdQuery(
+            task_id=task_id,
+            organization_id=organization_id,
+            user_id=admin_user_id,
+            user_role=role,
+        ),
+    )
+
+    assert updated_task.title.as_generic_type() == new_title
+
+
+@pytest.mark.asyncio
+async def test_update_task_command_member_cannot_update_other_user_task(
+    mediator: Mediator,
+    faker: Faker,
+):
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name=faker.company()),
+    )
+    organization_id = org_result.oid
+    task_owner_user_id = uuid4()
+    member_user_id = uuid4()
+
+    await mediator.handle_command(
+        AddMemberCommand(
+            organization_id=organization_id,
+            user_id=member_user_id,
+            role="member",
+        ),
+    )
+
+    contact_result, *_ = await mediator.handle_command(
+        CreateContactCommand(
+            organization_id=organization_id,
+            owner_user_id=task_owner_user_id,
+            name=faker.name(),
+        ),
+    )
+    contact_id = contact_result.oid
+
+    deal_result, *_ = await mediator.handle_command(
+        CreateDealCommand(
+            organization_id=organization_id,
+            contact_id=contact_id,
+            owner_user_id=task_owner_user_id,
+            title=faker.sentence(),
+            amount=1000.0,
+            currency="USD",
+        ),
+    )
+    deal_id = deal_result.oid
+
+    task_result, *_ = await mediator.handle_command(
+        CreateTaskCommand(
+            deal_id=deal_id,
+            title=faker.sentence(),
+            organization_id=organization_id,
+            user_id=task_owner_user_id,
+            user_role="owner",
+            description=faker.text(),
+            due_date=date.today() + timedelta(days=1),
+        ),
+    )
+    task_id = task_result.oid
+
+    with pytest.raises(AccessDeniedException) as exc_info:
+        await mediator.handle_command(
+            UpdateTaskCommand(
+                task_id=task_id,
+                organization_id=organization_id,
+                user_id=member_user_id,
+                user_role="member",
+                title=faker.sentence(),
+            ),
+        )
+
+    assert exc_info.value.resource_type == "Task"
+    assert exc_info.value.resource_id == task_id
+    assert exc_info.value.user_id == member_user_id
+
+
+@pytest.mark.asyncio
+async def test_update_task_command_member_can_update_own_task(
+    mediator: Mediator,
+    faker: Faker,
+):
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name=faker.company()),
+    )
+    organization_id = org_result.oid
+    member_user_id = uuid4()
+
+    await mediator.handle_command(
+        AddMemberCommand(
+            organization_id=organization_id,
+            user_id=member_user_id,
+            role="member",
+        ),
+    )
+
+    contact_result, *_ = await mediator.handle_command(
+        CreateContactCommand(
+            organization_id=organization_id,
+            owner_user_id=member_user_id,
+            name=faker.name(),
+        ),
+    )
+    contact_id = contact_result.oid
+
+    deal_result, *_ = await mediator.handle_command(
+        CreateDealCommand(
+            organization_id=organization_id,
+            contact_id=contact_id,
+            owner_user_id=member_user_id,
+            title=faker.sentence(),
+            amount=1000.0,
+            currency="USD",
+        ),
+    )
+    deal_id = deal_result.oid
+
+    task_result, *_ = await mediator.handle_command(
+        CreateTaskCommand(
+            deal_id=deal_id,
+            title=faker.sentence(),
+            organization_id=organization_id,
+            user_id=member_user_id,
+            user_role="member",
+            description=faker.text(),
+            due_date=date.today() + timedelta(days=1),
+        ),
+    )
+    task_id = task_result.oid
+
+    new_title = faker.sentence()
+
+    await mediator.handle_command(
+        UpdateTaskCommand(
+            task_id=task_id,
+            organization_id=organization_id,
+            user_id=member_user_id,
+            user_role="member",
+            title=new_title,
+        ),
+    )
+
+    updated_task = await mediator.handle_query(
+        GetTaskByIdQuery(
+            task_id=task_id,
+            organization_id=organization_id,
+            user_id=member_user_id,
+            user_role="member",
+        ),
+    )
+
+    assert updated_task.title.as_generic_type() == new_title
