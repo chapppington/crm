@@ -1,7 +1,7 @@
-from .activity import BaseActivityRepository
-from .contact import BaseContactRepository
-from .deal import BaseDealRepository
-from .task import BaseTaskRepository
+from .activities import BaseActivityRepository
+from .contacts import BaseContactRepository
+from .deals import BaseDealRepository
+from .tasks import BaseTaskRepository
 
 
 __all__ = (

@@ -1,14 +1,14 @@
-from .activity import (
+from .activities import (
     ActivityPayloadValueObject,
     ActivityType,
     ActivityTypeValueObject,
 )
-from .contact import (
+from .contacts import (
     ContactEmailValueObject,
     ContactNameValueObject,
     ContactPhoneValueObject,
 )
-from .deal import (
+from .deals import (
     CurrencyValueObject,
     DealAmountValueObject,
     DealStage,
@@ -17,7 +17,7 @@ from .deal import (
     DealStatusValueObject,
     DealTitleValueObject,
 )
-from .task import (
+from .tasks import (
     TaskDescriptionValueObject,
     TaskDueDateValueObject,
     TaskTitleValueObject,

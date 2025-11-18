@@ -1,7 +1,7 @@
-from .activity import ActivityService
-from .contact import ContactService
-from .deal import DealService
-from .task import TaskService
+from .activities import ActivityService
+from .contacts import ContactService
+from .deals import DealService
+from .tasks import TaskService
 
 
 __all__ = (

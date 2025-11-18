@@ -1,7 +1,7 @@
-from .activity import ActivityEntity
-from .contact import ContactEntity
-from .deal import DealEntity
-from .task import TaskEntity
+from .activities import ActivityEntity
+from .contacts import ContactEntity
+from .deals import DealEntity
+from .tasks import TaskEntity
 
 
 __all__ = (
