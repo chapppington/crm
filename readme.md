@@ -51,13 +51,40 @@ Backend-сервис для мини-CRM c поддержкой мультите
 
 ### API эндпоинты
 
-- Авторизация: `/api/v1/user/register`, `/api/v1/user/login`, `/api/v1/user/token/refresh`
-- Организации: `/api/v1/organizations` (CRUD + members)
-- Контакты: `/api/v1/contacts` (CRUD с фильтрацией)
-- Сделки: `/api/v1/deals` (CRUD с фильтрацией и сортировкой)
-- Задачи: `/api/v1/tasks` (CRUD с фильтрацией)
-- Активности: `/api/v1/deals/{deal_id}/activities` (GET, POST для комментариев)
-- Аналитика: `/api/v1/analytics/deals`, `/api/v1/analytics/funnel`
+**Авторизация** (`/api/v1/auth`)
+- `POST /api/v1/auth/register` — регистрация пользователя
+- `POST /api/v1/auth/login` — аутентификация и получение токенов
+- `POST /api/v1/auth/token/refresh` — обновление access токена
+
+**Организации** (`/api/v1/organizations`)
+- `POST /api/v1/organizations` — создание организации
+- `GET /api/v1/organizations/me` — список организаций текущего пользователя
+
+**Контакты** (`/api/v1/contacts`)
+- `GET /api/v1/contacts` — список контактов (фильтры: page, page_size, search, owner_id)
+- `POST /api/v1/contacts` — создание контакта
+- `GET /api/v1/contacts/{contact_id}` — получение контакта по ID
+- `DELETE /api/v1/contacts/{contact_id}` — удаление контакта
+
+**Сделки** (`/api/v1/deals`)
+- `GET /api/v1/deals` — список сделок (фильтры: page, page_size, status, min_amount, max_amount, stage, owner_id, order_by, order)
+- `POST /api/v1/deals` — создание сделки
+- `GET /api/v1/deals/{deal_id}` — получение сделки по ID
+- `PATCH /api/v1/deals/{deal_id}` — обновление сделки (статус, стадия)
+
+**Активности** (`/api/v1/deals/{deal_id}/activities`)
+- `GET /api/v1/deals/{deal_id}/activities` — список активностей по сделке
+- `POST /api/v1/deals/{deal_id}/activities` — создание комментария
+
+**Задачи** (`/api/v1/tasks`)
+- `GET /api/v1/tasks` — список задач (фильтры: page, page_size, deal_id, only_open, due_before, due_after, is_done)
+- `POST /api/v1/tasks` — создание задачи
+- `GET /api/v1/tasks/{task_id}` — получение задачи по ID
+- `PATCH /api/v1/tasks/{task_id}` — обновление задачи
+
+**Аналитика** (`/api/v1/analytics`)
+- `GET /api/v1/analytics/deals/summary` — сводка по сделкам (фильтры: created_after, status_list)
+- `GET /api/v1/analytics/deals/funnel` — воронка продаж (фильтры: status_list)
 
 ### Аналитика
 
