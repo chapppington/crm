@@ -10,6 +10,12 @@ services:
       - ../.env
     networks:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
 
   pgadmin:
     image: dpage/pgadmin4:latest
