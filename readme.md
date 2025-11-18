@@ -120,7 +120,7 @@ API документация: http://localhost:8000/api/docs
 |---------|----------|
 | `make test` | Запуск всех тестов |
 | `make precommit` | Запуск pre-commit проверок для всех файлов |
-| `make app-shell` | Подключение к shell контейнера приложения |
+| `make app-shell` | Подключение напрямую в контейнер приложения |
 | `make postgres` | Подключение к PostgreSQL через psql |
 
 ### Логи
