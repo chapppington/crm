@@ -39,10 +39,3 @@ class SQLAlchemyUserRepository(BaseUserRepository):
             res = await session.execute(stmt)
             result = res.scalar_one_or_none()
             return user_model_to_entity(result) if result else None
-
-    async def get_by_username(self, username: str) -> UserEntity | None:
-        return await self.get_by_email(username)
-
-    async def check_username_exists(self, username: str) -> bool:
-        user = await self.get_by_username(username)
-        return user is not None

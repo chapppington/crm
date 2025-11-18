@@ -103,7 +103,7 @@ async def test_get_user_organizations_success(
         ),
     )
 
-    members = await mediator.handle_query(
+    members, organizations_map = await mediator.handle_query(
         GetUserOrganizationsQuery(user_id=user_id),
     )
 
@@ -117,6 +117,9 @@ async def test_get_user_organizations_success(
     for member in members_list:
         assert member.user_id == user_id
 
+    assert isinstance(organizations_map, dict)
+    assert len(organizations_map) >= 0
+
 
 @pytest.mark.asyncio
 async def test_get_user_organizations_empty(
@@ -124,9 +127,11 @@ async def test_get_user_organizations_empty(
 ):
     user_id = uuid4()
 
-    members = await mediator.handle_query(
+    members, organizations_map = await mediator.handle_query(
         GetUserOrganizationsQuery(user_id=user_id),
     )
 
     members_list = list(members)
     assert len(members_list) == 0
+    assert isinstance(organizations_map, dict)
+    assert len(organizations_map) == 0

@@ -27,10 +27,3 @@ class DummyInMemoryUserRepository(BaseUserRepository):
             return next(user for user in self._saved_users if user.email.as_generic_type().lower() == search_term)
         except StopIteration:
             return None
-
-    async def get_by_username(self, username: str) -> UserEntity | None:
-        return await self.get_by_email(username)
-
-    async def check_username_exists(self, username: str) -> bool:
-        user = await self.get_by_username(username)
-        return user is not None

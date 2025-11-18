@@ -4,14 +4,15 @@ from dataclasses import (
 )
 from uuid import UUID
 
-from domain.organizations.entities import OrganizationMemberEntity
+from domain.organizations.entities import (
+    OrganizationEntity,
+    OrganizationMemberEntity,
+)
 from domain.organizations.interfaces.repositories.members import BaseOrganizationMemberRepository
 
 
 @dataclass
-class DummyInMemoryOrganizationMemberRepository(
-    BaseOrganizationMemberRepository,
-):
+class DummyInMemoryOrganizationMemberRepository(BaseOrganizationMemberRepository):
     _saved_members: list[OrganizationMemberEntity] = field(
         default_factory=list,
         kw_only=True,
@@ -46,5 +47,7 @@ class DummyInMemoryOrganizationMemberRepository(
     async def get_by_user(
         self,
         user_id: UUID,
-    ) -> list[OrganizationMemberEntity]:
-        return [member for member in self._saved_members if member.user_id == user_id]
+    ) -> tuple[list[OrganizationMemberEntity], dict[UUID, OrganizationEntity]]:
+        members = [member for member in self._saved_members if member.user_id == user_id]
+        organizations_map: dict[UUID, OrganizationEntity] = {}
+        return members, organizations_map

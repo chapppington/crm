@@ -51,9 +51,9 @@ class UserService:
         password: str,
         name: str,
     ) -> UserEntity:
-        username_exists = await self.user_repository.check_username_exists(email)
+        existing_user = await self.user_repository.get_by_email(email)
 
-        if username_exists:
+        if existing_user:
             raise UserAlreadyExistsException(email=email)
 
         self._validate_password(password)
@@ -89,7 +89,7 @@ class UserService:
         email: str,
         password: str,
     ) -> UserEntity:
-        user = await self.user_repository.get_by_username(email)
+        user = await self.user_repository.get_by_email(email)
 
         if user:
             password_valid = bcrypt.checkpw(
