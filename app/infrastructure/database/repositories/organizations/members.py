@@ -5,12 +5,14 @@ from infrastructure.database.converters.organizations.member import (
     organization_member_entity_to_model,
     organization_member_model_to_entity,
 )
+from infrastructure.database.converters.organizations.organization import organization_model_to_entity
 from infrastructure.database.gateways.postgres import Database
 from infrastructure.database.models.organizations.member import OrganizationMemberModel
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from domain.organizations.entities.members import OrganizationMemberEntity
+from domain.organizations.entities.organizations import OrganizationEntity
 from domain.organizations.interfaces.repositories.members import BaseOrganizationMemberRepository
 
 
@@ -65,7 +67,7 @@ class SQLAlchemyOrganizationMemberRepository(BaseOrganizationMemberRepository):
     async def get_by_user(
         self,
         user_id: UUID,
-    ) -> list[OrganizationMemberEntity]:
+    ) -> tuple[list[OrganizationMemberEntity], dict[UUID, OrganizationEntity]]:
         async with self.database.get_read_only_session() as session:
             stmt = (
                 select(OrganizationMemberModel)
@@ -77,4 +79,12 @@ class SQLAlchemyOrganizationMemberRepository(BaseOrganizationMemberRepository):
             )
             res = await session.execute(stmt)
             results = res.scalars().all()
-            return [organization_member_model_to_entity(row) for row in results]
+
+            members = [organization_member_model_to_entity(row) for row in results]
+            organizations_map = {
+                member.organization_id: organization_model_to_entity(row.organization)
+                for row, member in zip(results, members)
+                if row.organization is not None
+            }
+
+            return members, organizations_map

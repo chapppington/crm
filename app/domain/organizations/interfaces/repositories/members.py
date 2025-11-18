@@ -4,7 +4,10 @@ from abc import (
 )
 from uuid import UUID
 
-from domain.organizations.entities import OrganizationMemberEntity
+from domain.organizations.entities import (
+    OrganizationEntity,
+    OrganizationMemberEntity,
+)
 
 
 class BaseOrganizationMemberRepository(ABC):
@@ -30,5 +33,6 @@ class BaseOrganizationMemberRepository(ABC):
     async def get_by_user(
         self,
         user_id: UUID,
-    ) -> list[OrganizationMemberEntity]:
-        """Получить все организации пользователя."""
+    ) -> tuple[list[OrganizationMemberEntity], dict[UUID, OrganizationEntity]]:
+        """Получить все организации пользователя с загруженными
+        организациями."""

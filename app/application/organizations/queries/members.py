@@ -5,7 +5,10 @@ from application.base.query import (
     BaseQuery,
     BaseQueryHandler,
 )
-from domain.organizations.entities import OrganizationMemberEntity
+from domain.organizations.entities import (
+    OrganizationEntity,
+    OrganizationMemberEntity,
+)
 from domain.organizations.services import MemberService
 
 
@@ -43,7 +46,7 @@ class GetMemberByOrganizationAndUserQueryHandler(
 class GetUserOrganizationsQueryHandler(
     BaseQueryHandler[
         GetUserOrganizationsQuery,
-        list[OrganizationMemberEntity],
+        tuple[list[OrganizationMemberEntity], dict[UUID, OrganizationEntity]],
     ],
 ):
     member_service: MemberService
@@ -51,7 +54,7 @@ class GetUserOrganizationsQueryHandler(
     async def handle(
         self,
         query: GetUserOrganizationsQuery,
-    ) -> list[OrganizationMemberEntity]:
+    ) -> tuple[list[OrganizationMemberEntity], dict[UUID, OrganizationEntity]]:
         return await self.member_service.get_user_organizations(
             user_id=query.user_id,
         )

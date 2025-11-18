@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from domain.organizations.entities import OrganizationMemberEntity
+from domain.organizations.entities import (
+    OrganizationEntity,
+    OrganizationMemberEntity,
+)
 from domain.organizations.exceptions.members import (
     OrganizationMemberAlreadyExistsException,
     UserNotMemberOfOrganizationException,
@@ -57,5 +60,5 @@ class MemberService:
     async def get_user_organizations(
         self,
         user_id: UUID,
-    ) -> list[OrganizationMemberEntity]:
+    ) -> tuple[list[OrganizationMemberEntity], dict[UUID, OrganizationEntity]]:
         return await self.member_repository.get_by_user(user_id)
