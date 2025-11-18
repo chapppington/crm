@@ -1,13 +1,13 @@
 from functools import lru_cache
 
 from infrastructure.database.gateways.postgres import Database
-from infrastructure.database.repositories.dummy.users.users import DummyInMemoryUserRepository
 from infrastructure.database.repositories.organizations.members import SQLAlchemyOrganizationMemberRepository
 from infrastructure.database.repositories.organizations.organizations import SQLAlchemyOrganizationRepository
 from infrastructure.database.repositories.sales.activities import SQLAlchemyActivityRepository
 from infrastructure.database.repositories.sales.contacts import SQLAlchemyContactRepository
 from infrastructure.database.repositories.sales.deals import SQLAlchemyDealRepository
 from infrastructure.database.repositories.sales.tasks import SQLAlchemyTaskRepository
+from infrastructure.database.repositories.users.users import SQLAlchemyUserRepository
 from punq import (
     Container,
     Scope,
@@ -129,7 +129,7 @@ def _init_container() -> Container:
     )
     container.register(
         BaseUserRepository,
-        DummyInMemoryUserRepository,
+        SQLAlchemyUserRepository,
     )
     container.register(
         BaseContactRepository,
