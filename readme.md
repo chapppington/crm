@@ -96,9 +96,36 @@ API документация: http://localhost:8000/api/docs
 
 ## Основные команды
 
+### Управление сервисами
+
 | Команда | Описание |
 |---------|----------|
 | `make all` | Запуск приложения + PostgreSQL |
-| `make migrate` | Применение миграций |
+| `make all-down` | Остановка всех сервисов |
+| `make app-up` | Запуск только приложения |
+| `make app-down` | Остановка приложения |
+| `make storages` | Запуск только PostgreSQL |
+| `make storages-down` | Остановка PostgreSQL |
+
+### Миграции
+
+| Команда | Описание |
+|---------|----------|
+| `make migrations` | Создание новой миграции (autogenerate) |
+| `make migrate` | Применение миграций (upgrade head) |
+
+### Разработка
+
+| Команда | Описание |
+|---------|----------|
 | `make test` | Запуск всех тестов |
-| `make migrations` | Создание новой миграции |
+| `make precommit` | Запуск pre-commit проверок для всех файлов |
+| `make app-shell` | Подключение к shell контейнера приложения |
+| `make postgres` | Подключение к PostgreSQL через psql |
+
+### Логи
+
+| Команда | Описание |
+|---------|----------|
+| `make app-logs` | Просмотр логов приложения |
+| `make storages-logs` | Просмотр логов PostgreSQL |
