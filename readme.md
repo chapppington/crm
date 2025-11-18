@@ -28,13 +28,63 @@ Backend-сервис для мини-CRM c поддержкой мультите
 
 Реализованы все требуемые сущности:
 
-- **Organization** — id, name, created_at
-- **User** — id, email (уникальный), hashed_password, name, created_at
-- **OrganizationMember** — id, organization_id, user_id, role (owner/admin/manager/member), уникальность пары (organization_id, user_id)
-- **Contact** — id, organization_id, owner_id, name, email, phone, created_at
-- **Deal** — id, organization_id, contact_id, owner_id, title, amount, currency, status, stage, created_at, updated_at
-- **Task** — id, deal_id, title, description, due_date, is_done, created_at
-- **Activity** — id, deal_id, author_id, type, payload (JSONB), created_at
+**Organization**
+- `id` — UUID
+- `name` — строка
+- `created_at` — timestamp
+
+**User**
+- `id` — UUID
+- `email` — строка (уникальный)
+- `hashed_password` — строка (bcrypt)
+- `name` — строка
+- `created_at` — timestamp
+
+**OrganizationMember**
+- `id` — UUID
+- `organization_id` — UUID (FK → Organization)
+- `user_id` — UUID (FK → User)
+- `role` — enum (owner, admin, manager, member)
+- Уникальность пары `(organization_id, user_id)`
+
+**Contact**
+- `id` — UUID
+- `organization_id` — UUID (FK → Organization)
+- `owner_id` — UUID (FK → User)
+- `name` — строка
+- `email` — строка
+- `phone` — строка
+- `created_at` — timestamp
+
+**Deal**
+- `id` — UUID
+- `organization_id` — UUID (FK → Organization)
+- `contact_id` — UUID (FK → Contact)
+- `owner_id` — UUID (FK → User)
+- `title` — строка
+- `amount` — decimal
+- `currency` — строка (USD, EUR, RUB и т.д.)
+- `status` — enum (new, in_progress, won, lost)
+- `stage` — enum (qualification, proposal, negotiation, closed)
+- `created_at` — timestamp
+- `updated_at` — timestamp
+
+**Task**
+- `id` — UUID
+- `deal_id` — UUID (FK → Deal)
+- `title` — строка
+- `description` — строка (nullable)
+- `due_date` — date (nullable)
+- `is_done` — boolean
+- `created_at` — timestamp
+
+**Activity**
+- `id` — UUID
+- `deal_id` — UUID (FK → Deal)
+- `author_id` — UUID (FK → User, nullable)
+- `type` — enum (comment, status_changed, stage_changed, task_created, system)
+- `payload` — JSONB (произвольные данные)
+- `created_at` — timestamp
 
 ### Бизнес-правила
 
