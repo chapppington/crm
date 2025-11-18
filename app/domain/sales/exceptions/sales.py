@@ -182,6 +182,28 @@ class ContactOrganizationMismatchException(SalesException):
         )
 
 
+@dataclass(eq=False)
+class AccessDeniedException(SalesException):
+    resource_type: str
+    resource_id: UUID
+    user_id: UUID
+
+    @property
+    def message(self) -> str:
+        return f"User {self.user_id} does not have access to {self.resource_type} {self.resource_id}"
+
+
+@dataclass(eq=False)
+class ResourceNotFoundInOrganizationException(SalesException):
+    resource_type: str
+    resource_id: UUID
+    organization_id: UUID
+
+    @property
+    def message(self) -> str:
+        return f"{self.resource_type} {self.resource_id} not found in organization {self.organization_id}"
+
+
 # Task exceptions
 @dataclass(eq=False)
 class EmptyTaskTitleException(SalesException):

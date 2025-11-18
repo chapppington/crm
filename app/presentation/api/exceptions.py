@@ -37,9 +37,13 @@ async def application_exception_handler(
             else:
                 status_code = status.HTTP_400_BAD_REQUEST
         elif isinstance(exc, (SalesException, OrganizationException)):
-            if "NotFound" in exc.__class__.__name__:
+            if "NotFound" in exc.__class__.__name__ or "ResourceNotFound" in exc.__class__.__name__:
                 status_code = status.HTTP_404_NOT_FOUND
-            elif "Mismatch" in exc.__class__.__name__ or "NotAllowed" in exc.__class__.__name__:
+            elif (
+                "Mismatch" in exc.__class__.__name__
+                or "NotAllowed" in exc.__class__.__name__
+                or "AccessDenied" in exc.__class__.__name__
+            ):
                 status_code = status.HTTP_403_FORBIDDEN
             else:
                 status_code = status.HTTP_400_BAD_REQUEST

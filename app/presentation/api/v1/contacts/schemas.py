@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from presentation.api.filters import PaginationOut
 from pydantic import BaseModel
 
 from domain.sales.entities import ContactEntity
@@ -35,4 +36,4 @@ class CreateContactRequestSchema(BaseModel):
 
 class ContactListResponseSchema(BaseModel):
     items: list[ContactResponseSchema]
-    pagination: dict[str, int]
+    pagination: PaginationOut

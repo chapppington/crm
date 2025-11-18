@@ -12,7 +12,6 @@ from application.sales.commands import (
     UpdateDealStatusCommand,
 )
 from application.sales.queries import GetDealByIdQuery
-from domain.organizations.value_objects.members import OrganizationMemberRole
 from domain.sales.entities import DealEntity
 from domain.sales.exceptions.sales import (
     ContactOrganizationMismatchException,
@@ -69,7 +68,12 @@ async def test_create_deal_command_success(
     assert deal.oid is not None
 
     retrieved_deal = await mediator.handle_query(
-        GetDealByIdQuery(deal_id=deal.oid),
+        GetDealByIdQuery(
+            deal_id=deal.oid,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     assert retrieved_deal.oid == deal.oid
@@ -216,11 +220,22 @@ async def test_update_deal_status_command_success(
     deal_id = deal_result.oid
 
     await mediator.handle_command(
-        UpdateDealStatusCommand(deal_id=deal_id, new_status="won"),
+        UpdateDealStatusCommand(
+            deal_id=deal_id,
+            new_status="won",
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     updated_deal = await mediator.handle_query(
-        GetDealByIdQuery(deal_id=deal_id),
+        GetDealByIdQuery(
+            deal_id=deal_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     assert updated_deal.status.as_generic_type().value == "won"
@@ -262,12 +277,19 @@ async def test_update_deal_stage_command_success(
         UpdateDealStageCommand(
             deal_id=deal_id,
             new_stage="proposal",
-            user_role=OrganizationMemberRole.ADMIN,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="admin",
         ),
     )
 
     updated_deal = await mediator.handle_query(
-        GetDealByIdQuery(deal_id=deal_id),
+        GetDealByIdQuery(
+            deal_id=deal_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     assert updated_deal.stage.as_generic_type().value == "proposal"
@@ -309,7 +331,9 @@ async def test_update_deal_stage_command_rollback_not_allowed_for_member(
         UpdateDealStageCommand(
             deal_id=deal_id,
             new_stage="proposal",
-            user_role=OrganizationMemberRole.ADMIN,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="admin",
         ),
     )
 
@@ -318,7 +342,9 @@ async def test_update_deal_stage_command_rollback_not_allowed_for_member(
             UpdateDealStageCommand(
                 deal_id=deal_id,
                 new_stage="qualification",
-                user_role=OrganizationMemberRole.MEMBER,
+                organization_id=organization_id,
+                user_id=owner_user_id,
+                user_role="member",
             ),
         )
 

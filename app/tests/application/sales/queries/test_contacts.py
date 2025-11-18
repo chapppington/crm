@@ -37,7 +37,12 @@ async def test_get_contact_by_id_success(
     created_contact: ContactEntity = contact_result
 
     retrieved_contact = await mediator.handle_query(
-        GetContactByIdQuery(contact_id=created_contact.oid),
+        GetContactByIdQuery(
+            contact_id=created_contact.oid,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     assert retrieved_contact.oid == created_contact.oid
@@ -51,9 +56,20 @@ async def test_get_contact_by_id_not_found(
 ):
     non_existent_id = uuid4()
 
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name="Test Org"),
+    )
+    organization_id = org_result.oid
+    user_id = uuid4()
+
     with pytest.raises(ContactNotFoundException) as exc_info:
         await mediator.handle_query(
-            GetContactByIdQuery(contact_id=non_existent_id),
+            GetContactByIdQuery(
+                contact_id=non_existent_id,
+                organization_id=organization_id,
+                user_id=user_id,
+                user_role="owner",
+            ),
         )
 
     assert exc_info.value.contact_id == non_existent_id
@@ -87,7 +103,13 @@ async def test_get_contacts_query_success(
     )
 
     filters = ContactFilters(organization_id=organization_id)
-    contacts, count = await mediator.handle_query(GetContactsQuery(filters=filters))
+    contacts, count = await mediator.handle_query(
+        GetContactsQuery(
+            filters=filters,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
+    )
 
     contacts_list = list(contacts)
     assert count >= 2
@@ -119,7 +141,13 @@ async def test_get_contacts_query_with_search_filter(
     )
 
     filters = ContactFilters(organization_id=organization_id, search=search_name)
-    contacts, count = await mediator.handle_query(GetContactsQuery(filters=filters))
+    contacts, count = await mediator.handle_query(
+        GetContactsQuery(
+            filters=filters,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
+    )
 
     contacts_list = list(contacts)
     assert count >= 1
@@ -147,7 +175,13 @@ async def test_get_contacts_query_with_pagination(
         )
 
     filters = ContactFilters(organization_id=organization_id, page=1, page_size=2)
-    contacts, count = await mediator.handle_query(GetContactsQuery(filters=filters))
+    contacts, count = await mediator.handle_query(
+        GetContactsQuery(
+            filters=filters,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
+    )
 
     contacts_list = list(contacts)
     assert count >= 3

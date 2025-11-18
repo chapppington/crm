@@ -41,6 +41,8 @@ from application.sales.commands import (
     CreateTaskCommandHandler,
     DeleteContactCommand,
     DeleteContactCommandHandler,
+    UpdateDealCommand,
+    UpdateDealCommandHandler,
     UpdateDealStageCommand,
     UpdateDealStageCommandHandler,
     UpdateDealStatusCommand,
@@ -173,6 +175,7 @@ def _init_container() -> Container:
     container.register(CreateDealCommandHandler)
     container.register(UpdateDealStatusCommandHandler)
     container.register(UpdateDealStageCommandHandler)
+    container.register(UpdateDealCommandHandler)
 
     # Sales - Tasks
     container.register(CreateTaskCommandHandler)
@@ -250,6 +253,10 @@ def _init_container() -> Container:
         mediator.register_command(
             UpdateDealStageCommand,
             [container.resolve(UpdateDealStageCommandHandler)],
+        )
+        mediator.register_command(
+            UpdateDealCommand,
+            [container.resolve(UpdateDealCommandHandler)],
         )
 
         # Sales - Tasks

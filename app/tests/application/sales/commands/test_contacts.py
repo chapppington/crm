@@ -55,7 +55,12 @@ async def test_create_contact_command_success(
     assert contact.oid is not None
 
     retrieved_contact = await mediator.handle_query(
-        GetContactByIdQuery(contact_id=contact.oid),
+        GetContactByIdQuery(
+            contact_id=contact.oid,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     assert retrieved_contact.oid == contact.oid
@@ -116,9 +121,20 @@ async def test_get_contact_by_id_not_found(
 ):
     non_existent_id = uuid4()
 
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name="Test Org"),
+    )
+    organization_id = org_result.oid
+    user_id = uuid4()
+
     with pytest.raises(ContactNotFoundException) as exc_info:
         await mediator.handle_query(
-            GetContactByIdQuery(contact_id=non_existent_id),
+            GetContactByIdQuery(
+                contact_id=non_existent_id,
+                organization_id=organization_id,
+                user_id=user_id,
+                user_role="owner",
+            ),
         )
 
     assert exc_info.value.contact_id == non_existent_id
@@ -144,11 +160,23 @@ async def test_delete_contact_command_success(
     )
     contact_id = contact_result.oid
 
-    await mediator.handle_command(DeleteContactCommand(contact_id=contact_id))
+    await mediator.handle_command(
+        DeleteContactCommand(
+            contact_id=contact_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
+    )
 
     with pytest.raises(ContactNotFoundException):
         await mediator.handle_query(
-            GetContactByIdQuery(contact_id=contact_id),
+            GetContactByIdQuery(
+                contact_id=contact_id,
+                organization_id=organization_id,
+                user_id=owner_user_id,
+                user_role="owner",
+            ),
         )
 
 
@@ -184,6 +212,13 @@ async def test_delete_contact_with_active_deals_fails(
     )
 
     with pytest.raises(ContactHasActiveDealsException) as exc_info:
-        await mediator.handle_command(DeleteContactCommand(contact_id=contact_id))
+        await mediator.handle_command(
+            DeleteContactCommand(
+                contact_id=contact_id,
+                organization_id=organization_id,
+                user_id=owner_user_id,
+                user_role="owner",
+            ),
+        )
 
     assert exc_info.value.contact_id == contact_id

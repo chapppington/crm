@@ -3,7 +3,6 @@ from uuid import UUID
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException,
     Query,
     status,
 )
@@ -13,12 +12,8 @@ from presentation.api.dependencies import (
     get_organization_id,
     get_organization_member,
 )
+from presentation.api.filters import PaginationOut
 from presentation.api.schemas import ApiResponse
-from presentation.api.v1.contacts.permissions import (
-    can_filter_by_owner,
-    check_contact_access,
-    check_contact_organization,
-)
 from presentation.api.v1.contacts.schemas import (
     ContactListResponseSchema,
     ContactResponseSchema,
@@ -63,18 +58,6 @@ async def get_contacts(
     """Получить список контактов с фильтрацией и пагинацией."""
     mediator: Mediator = container.resolve(Mediator)
 
-    # Проверка прав на фильтрацию по owner_id
-    if owner_id is not None and not can_filter_by_owner(member):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You don't have permission to filter by owner_id",
-        )
-
-    # Для member автоматически фильтруем по его контактам
-    role = member.role.as_generic_type()
-    if role.value == "member" and owner_id is None:
-        owner_id = user_id
-
     filters = ContactFilters(
         organization_id=organization_id,
         page=page,
@@ -83,16 +66,22 @@ async def get_contacts(
         owner_id=owner_id,
     )
 
-    query = GetContactsQuery(filters=filters)
+    role = member.role.as_generic_type()
+    query = GetContactsQuery(
+        filters=filters,
+        user_id=user_id,
+        user_role=role.value,
+        owner_id=owner_id,
+    )
     contacts, total = await mediator.handle_query(query)
 
     items = [ContactResponseSchema.from_entity(contact) for contact in contacts]
 
-    pagination = {
-        "limit": page_size,
-        "offset": (page - 1) * page_size,
-        "total": total,
-    }
+    pagination = PaginationOut(
+        limit=page_size,
+        offset=(page - 1) * page_size,
+        total=total,
+    )
 
     return ApiResponse[ContactListResponseSchema](
         data=ContactListResponseSchema(
@@ -153,14 +142,14 @@ async def get_contact(
     """Получить контакт по ID."""
     mediator: Mediator = container.resolve(Mediator)
 
-    query = GetContactByIdQuery(contact_id=contact_id)
+    role = member.role.as_generic_type()
+    query = GetContactByIdQuery(
+        contact_id=contact_id,
+        organization_id=organization_id,
+        user_id=user_id,
+        user_role=role.value,
+    )
     contact = await mediator.handle_query(query)
-
-    # Проверка принадлежности к организации
-    check_contact_organization(contact, organization_id)
-
-    # Проверка прав доступа
-    check_contact_access(contact, member, user_id)
 
     return ApiResponse[ContactResponseSchema](
         data=ContactResponseSchema.from_entity(contact),
@@ -185,16 +174,11 @@ async def delete_contact(
     """Удалить контакт."""
     mediator: Mediator = container.resolve(Mediator)
 
-    # Сначала получаем контакт для проверки прав
-    query = GetContactByIdQuery(contact_id=contact_id)
-    contact = await mediator.handle_query(query)
-
-    # Проверка принадлежности к организации
-    check_contact_organization(contact, organization_id)
-
-    # Проверка прав доступа
-    check_contact_access(contact, member, user_id)
-
-    # Удаление контакта (проверка на активные сделки выполняется в сервисе)
-    command = DeleteContactCommand(contact_id=contact_id)
+    role = member.role.as_generic_type()
+    command = DeleteContactCommand(
+        contact_id=contact_id,
+        organization_id=organization_id,
+        user_id=user_id,
+        user_role=role.value,
+    )
     await mediator.handle_command(command)

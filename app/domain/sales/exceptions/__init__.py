@@ -1,4 +1,5 @@
 from .sales import (
+    AccessDeniedException,
     ActivityNotFoundException,
     CannotCloseDealWithZeroAmountException,
     CannotCreateTaskForOtherUserDealException,
@@ -25,12 +26,14 @@ from .sales import (
     InvalidDealStageException,
     InvalidDealStatusException,
     InvalidTaskDueDateException,
+    ResourceNotFoundInOrganizationException,
     SalesException,
     TaskNotFoundException,
 )
 
 
 __all__ = (
+    "AccessDeniedException",
     "ActivityNotFoundException",
     "CannotCloseDealWithZeroAmountException",
     "CannotCreateTaskForOtherUserDealException",
@@ -57,6 +60,7 @@ __all__ = (
     "InvalidDealStageException",
     "InvalidDealStatusException",
     "InvalidTaskDueDateException",
+    "ResourceNotFoundInOrganizationException",
     "SalesException",
     "TaskNotFoundException",
 )

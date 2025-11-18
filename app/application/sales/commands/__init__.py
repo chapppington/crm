@@ -13,6 +13,8 @@ from application.sales.commands.contacts import (
 from application.sales.commands.deals import (
     CreateDealCommand,
     CreateDealCommandHandler,
+    UpdateDealCommand,
+    UpdateDealCommandHandler,
     UpdateDealStageCommand,
     UpdateDealStageCommandHandler,
     UpdateDealStatusCommand,
@@ -41,6 +43,8 @@ __all__ = [
     "UpdateDealStatusCommandHandler",
     "UpdateDealStageCommand",
     "UpdateDealStageCommandHandler",
+    "UpdateDealCommand",
+    "UpdateDealCommandHandler",
     "CreateTaskCommand",
     "CreateTaskCommandHandler",
     "UpdateTaskCommand",

@@ -52,7 +52,12 @@ async def test_get_deal_by_id_success(
     created_deal: DealEntity = deal_result
 
     retrieved_deal = await mediator.handle_query(
-        GetDealByIdQuery(deal_id=created_deal.oid),
+        GetDealByIdQuery(
+            deal_id=created_deal.oid,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     assert retrieved_deal.oid == created_deal.oid
@@ -66,9 +71,20 @@ async def test_get_deal_by_id_not_found(
 ):
     non_existent_id = uuid4()
 
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name="Test Org"),
+    )
+    organization_id = org_result.oid
+    user_id = uuid4()
+
     with pytest.raises(DealNotFoundException) as exc_info:
         await mediator.handle_query(
-            GetDealByIdQuery(deal_id=non_existent_id),
+            GetDealByIdQuery(
+                deal_id=non_existent_id,
+                organization_id=organization_id,
+                user_id=user_id,
+                user_role="owner",
+            ),
         )
 
     assert exc_info.value.deal_id == non_existent_id
@@ -117,7 +133,13 @@ async def test_get_deals_query_success(
     )
 
     filters = DealFilters(organization_id=organization_id)
-    deals, count = await mediator.handle_query(GetDealsQuery(filters=filters))
+    deals, count = await mediator.handle_query(
+        GetDealsQuery(
+            filters=filters,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
+    )
 
     deals_list = list(deals)
     assert count >= 2
@@ -161,7 +183,13 @@ async def test_get_deals_query_with_pagination(
         )
 
     filters = DealFilters(organization_id=organization_id, page=1, page_size=2)
-    deals, count = await mediator.handle_query(GetDealsQuery(filters=filters))
+    deals, count = await mediator.handle_query(
+        GetDealsQuery(
+            filters=filters,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
+    )
 
     deals_list = list(deals)
     assert count >= 3
