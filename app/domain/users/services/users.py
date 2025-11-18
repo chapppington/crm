@@ -54,13 +54,13 @@ class UserService:
         username_exists = await self.user_repository.check_username_exists(email)
 
         if username_exists:
-            raise UserAlreadyExistsException(username=email)
+            raise UserAlreadyExistsException(email=email)
 
         self._validate_password(password)
 
         hashed_password = bcrypt.hashpw(
             password.encode("utf-8"),
-            bcrypt.gensalt(),
+            bcrypt.gensalt(rounds=8),
         ).decode("utf-8")
 
         user = UserEntity(
