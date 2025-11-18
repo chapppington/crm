@@ -5,8 +5,8 @@ from dataclasses import (
 )
 from uuid import UUID
 
-from domain.sales.entities import DealEntity
-from domain.sales.filters import DealFilters
+from domain.sales.entities.deals import DealEntity
+from domain.sales.filters.deals import DealFilters
 from domain.sales.interfaces.repositories.deals import BaseDealRepository
 
 
@@ -16,6 +16,44 @@ class DummyInMemoryDealRepository(BaseDealRepository):
         default_factory=list,
         kw_only=True,
     )
+
+    def _filter_items(self, items: list[DealEntity], filters: DealFilters) -> list[DealEntity]:
+        result = list(items)
+
+        if filters.organization_id:
+            result = [d for d in result if d.organization_id == filters.organization_id]
+        if filters.contact_id:
+            result = [d for d in result if d.contact_id == filters.contact_id]
+        if filters.owner_id:
+            result = [d for d in result if d.owner_user_id == filters.owner_id]
+        if filters.id:
+            result = [d for d in result if d.oid == filters.id]
+        if filters.ids:
+            result = [d for d in result if d.oid in filters.ids]
+        if filters.status:
+            status_values = [s.value for s in filters.status]
+            result = [d for d in result if d.status.as_generic_type().value in status_values]
+        if filters.stage:
+            result = [d for d in result if d.stage.as_generic_type() == filters.stage]
+        if filters.min_amount is not None:
+            result = [d for d in result if d.amount.as_generic_type() >= filters.min_amount]
+        if filters.max_amount is not None:
+            result = [d for d in result if d.amount.as_generic_type() <= filters.max_amount]
+        if filters.currency:
+            result = [d for d in result if d.currency.as_generic_type() == filters.currency]
+        if filters.updated_at_from:
+            result = [d for d in result if d.updated_at >= filters.updated_at_from]
+        if filters.updated_at_to:
+            result = [d for d in result if d.updated_at <= filters.updated_at_to]
+        if filters.search:
+            search_lower = filters.search.lower()
+            result = [d for d in result if search_lower in d.title.as_generic_type().lower()]
+        if filters.created_at_from:
+            result = [d for d in result if d.created_at >= filters.created_at_from]
+        if filters.created_at_to:
+            result = [d for d in result if d.created_at <= filters.created_at_to]
+
+        return result
 
     async def add(self, deal: DealEntity) -> None:
         self._saved_deals.append(deal)
@@ -39,26 +77,7 @@ class DummyInMemoryDealRepository(BaseDealRepository):
         self,
         filters: DealFilters,
     ) -> Iterable[DealEntity]:
-        result = list(self._saved_deals)
-
-        if filters.organization_id:
-            result = [d for d in result if d.organization_id == filters.organization_id]
-        if filters.contact_id:
-            result = [d for d in result if d.contact_id == filters.contact_id]
-        if filters.owner_id:
-            result = [d for d in result if d.owner_user_id == filters.owner_id]
-        if filters.id:
-            result = [d for d in result if d.oid == filters.id]
-        if filters.ids:
-            result = [d for d in result if d.oid in filters.ids]
-        if filters.status:
-            result = [d for d in result if d.status.as_generic_type() in filters.status]
-        if filters.stage:
-            result = [d for d in result if d.stage.as_generic_type() == filters.stage]
-        if filters.min_amount is not None:
-            result = [d for d in result if d.amount.as_generic_type() >= filters.min_amount]
-        if filters.max_amount is not None:
-            result = [d for d in result if d.amount.as_generic_type() <= filters.max_amount]
+        result = self._filter_items(self._saved_deals, filters)
 
         offset = (filters.page - 1) * filters.page_size
         limit = filters.page_size
@@ -69,25 +88,5 @@ class DummyInMemoryDealRepository(BaseDealRepository):
         self,
         filters: DealFilters,
     ) -> int:
-        result = list(self._saved_deals)
-
-        if filters.organization_id:
-            result = [d for d in result if d.organization_id == filters.organization_id]
-        if filters.contact_id:
-            result = [d for d in result if d.contact_id == filters.contact_id]
-        if filters.owner_id:
-            result = [d for d in result if d.owner_user_id == filters.owner_id]
-        if filters.id:
-            result = [d for d in result if d.oid == filters.id]
-        if filters.ids:
-            result = [d for d in result if d.oid in filters.ids]
-        if filters.status:
-            result = [d for d in result if d.status.as_generic_type() in filters.status]
-        if filters.stage:
-            result = [d for d in result if d.stage.as_generic_type() == filters.stage]
-        if filters.min_amount is not None:
-            result = [d for d in result if d.amount.as_generic_type() >= filters.min_amount]
-        if filters.max_amount is not None:
-            result = [d for d in result if d.amount.as_generic_type() <= filters.max_amount]
-
+        result = self._filter_items(self._saved_deals, filters)
         return len(result)

@@ -1,12 +1,13 @@
 from functools import lru_cache
 
-from infrastructure.database.repositories.dummy.organizations.members import DummyInMemoryOrganizationMemberRepository
-from infrastructure.database.repositories.dummy.organizations.organizations import DummyInMemoryOrganizationRepository
-from infrastructure.database.repositories.dummy.sales.activities import DummyInMemoryActivityRepository
-from infrastructure.database.repositories.dummy.sales.contacts import DummyInMemoryContactRepository
-from infrastructure.database.repositories.dummy.sales.deals import DummyInMemoryDealRepository
-from infrastructure.database.repositories.dummy.sales.tasks import DummyInMemoryTaskRepository
+from infrastructure.database.gateways.postgres import Database
 from infrastructure.database.repositories.dummy.users.users import DummyInMemoryUserRepository
+from infrastructure.database.repositories.organizations.members import SQLAlchemyOrganizationMemberRepository
+from infrastructure.database.repositories.organizations.organizations import SQLAlchemyOrganizationRepository
+from infrastructure.database.repositories.sales.activities import SQLAlchemyActivityRepository
+from infrastructure.database.repositories.sales.contacts import SQLAlchemyContactRepository
+from infrastructure.database.repositories.sales.deals import SQLAlchemyDealRepository
+from infrastructure.database.repositories.sales.tasks import SQLAlchemyTaskRepository
 from punq import (
     Container,
     Scope,
@@ -105,43 +106,46 @@ def _init_container() -> Container:
     container = Container()
 
     # Регистрируем конфиг
-    container.register(Config, instance=Config(), scope=Scope.singleton)
+    config = Config()
+    container.register(Config, instance=config, scope=Scope.singleton)
 
-    # Регистрируем репозитории (dummy для начала)
+    # Регистрируем Database
+    def init_database() -> Database:
+        return Database(
+            url=config.postgres_connection_uri,
+            ro_url=config.postgres_connection_uri,
+        )
+
+    container.register(Database, factory=init_database, scope=Scope.singleton)
+
+    # Регистрируем репозитории
     container.register(
         BaseOrganizationRepository,
-        DummyInMemoryOrganizationRepository,
-        scope=Scope.singleton,
+        SQLAlchemyOrganizationRepository,
     )
     container.register(
         BaseOrganizationMemberRepository,
-        DummyInMemoryOrganizationMemberRepository,
-        scope=Scope.singleton,
+        SQLAlchemyOrganizationMemberRepository,
     )
     container.register(
         BaseUserRepository,
         DummyInMemoryUserRepository,
-        scope=Scope.singleton,
     )
     container.register(
         BaseContactRepository,
-        DummyInMemoryContactRepository,
-        scope=Scope.singleton,
+        SQLAlchemyContactRepository,
     )
     container.register(
         BaseDealRepository,
-        DummyInMemoryDealRepository,
-        scope=Scope.singleton,
+        SQLAlchemyDealRepository,
     )
     container.register(
         BaseTaskRepository,
-        DummyInMemoryTaskRepository,
-        scope=Scope.singleton,
+        SQLAlchemyTaskRepository,
     )
     container.register(
         BaseActivityRepository,
-        DummyInMemoryActivityRepository,
-        scope=Scope.singleton,
+        SQLAlchemyActivityRepository,
     )
 
     # Регистрируем доменные сервисы
