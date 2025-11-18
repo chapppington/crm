@@ -106,7 +106,7 @@ async def refresh_token(
 ) -> ApiResponse[RefreshTokenResponseSchema]:
     """Обновление access токена с помощью refresh токена из cookies."""
     # Создаем новый access токен
-    user_id = refresh_payload.get("sub") or refresh_payload.get("uid")
+    user_id = refresh_payload.sub
     access_token = auth_service.create_access_token(uid=user_id)
 
     # Устанавливаем новый access токен в cookie

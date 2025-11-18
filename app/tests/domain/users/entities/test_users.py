@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from domain.users.entities import UserEntity
 from domain.users.value_objects import (
     EmailValueObject,
@@ -25,8 +27,6 @@ def test_user_entity_creation():
 
 
 def test_user_entity_equality():
-    from uuid import uuid4
-
     user_id = uuid4()
     email1 = EmailValueObject("test@example.com")
     email2 = EmailValueObject("test@example.com")
@@ -42,8 +42,6 @@ def test_user_entity_equality():
 
 
 def test_user_entity_hash():
-    from uuid import uuid4
-
     user_id = uuid4()
     email1 = EmailValueObject("test@example.com")
     email2 = EmailValueObject("test@example.com")

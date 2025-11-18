@@ -16,9 +16,9 @@ auth_config = AuthXConfig(
     JWT_TOKEN_LOCATION=["cookies"],  # Используем cookies
     JWT_ACCESS_COOKIE_NAME="access_token",
     JWT_REFRESH_COOKIE_NAME="refresh_token",
-    # JWT_COOKIE_CSRF_PROTECT=False,  # выключаем csrf чтобы работал refresh endpoint
-    # JWT_COOKIE_SAMESITE="lax",  # lax для работы с HTTP, none требует HTTPS
-    # JWT_COOKIE_SECURE=False,  # False для HTTP, True для HTTPS
+    JWT_COOKIE_CSRF_PROTECT=False,  # выключаем csrf чтобы работал refresh endpoint
+    JWT_COOKIE_SAMESITE="lax",  # lax для работы с HTTP, none требует HTTPS
+    JWT_COOKIE_SECURE=False,  # False для HTTP, True для HTTPS
 )
 
 auth_service = AuthX(config=auth_config)
