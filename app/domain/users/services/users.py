@@ -14,7 +14,10 @@ from domain.users.exceptions import (
     UserNotFoundException,
 )
 from domain.users.interfaces.repositories.users import BaseUserRepository
-from domain.users.value_objects import UserNameValueObject
+from domain.users.value_objects import (
+    EmailValueObject,
+    UserNameValueObject,
+)
 
 
 MIN_PASSWORD_LENGTH = 8
@@ -44,13 +47,14 @@ class UserService:
 
     async def create_user(
         self,
-        username: str,
+        email: str,
         password: str,
+        name: str,
     ) -> UserEntity:
-        username_exists = await self.user_repository.check_username_exists(username)
+        username_exists = await self.user_repository.check_username_exists(email)
 
         if username_exists:
-            raise UserAlreadyExistsException(username=username)
+            raise UserAlreadyExistsException(username=email)
 
         self._validate_password(password)
 
@@ -60,8 +64,9 @@ class UserService:
         ).decode("utf-8")
 
         user = UserEntity(
-            username=UserNameValueObject(username),
-            password=hashed_password,
+            email=EmailValueObject(email),
+            hashed_password=hashed_password,
+            name=UserNameValueObject(name),
         )
 
         await self.user_repository.add(user)
@@ -81,15 +86,15 @@ class UserService:
 
     async def authenticate_user(
         self,
-        username: str,
+        email: str,
         password: str,
     ) -> UserEntity:
-        user = await self.user_repository.get_by_username(username)
+        user = await self.user_repository.get_by_username(email)
 
         if user:
             password_valid = bcrypt.checkpw(
                 password.encode("utf-8"),
-                user.password.encode("utf-8"),
+                user.hashed_password.encode("utf-8"),
             )
 
         if not user or not password_valid:

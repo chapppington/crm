@@ -2,9 +2,11 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from collections.abc import Iterable
 from uuid import UUID
 
 from domain.sales.entities import DealEntity
+from domain.sales.filters import DealFilters
 
 
 class BaseDealRepository(ABC):
@@ -19,3 +21,15 @@ class BaseDealRepository(ABC):
 
     @abstractmethod
     async def get_by_contact_id(self, contact_id: UUID) -> list[DealEntity]: ...
+
+    @abstractmethod
+    async def get_list(
+        self,
+        filters: DealFilters,
+    ) -> Iterable[DealEntity]: ...
+
+    @abstractmethod
+    async def get_count(
+        self,
+        filters: DealFilters,
+    ) -> int: ...

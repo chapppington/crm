@@ -11,15 +11,15 @@ from application.base.command import (
     CommandResultType,
     CommandType,
 )
-from application.base.exceptions import (
-    CommandHandlersNotRegisteredException,
-    QueryHandlerNotRegisteredException,
-)
 from application.base.query import (
     BaseQuery,
     BaseQueryHandler,
     QueryResultType,
     QueryType,
+)
+from application.common.exceptions import (
+    CommandHandlersNotRegisteredException,
+    QueryHandlerNotRegisteredException,
 )
 
 

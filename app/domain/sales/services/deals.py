@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -6,6 +7,7 @@ from domain.sales.exceptions.sales import (
     CannotCloseDealWithZeroAmountException,
     DealNotFoundException,
 )
+from domain.sales.filters import DealFilters
 from domain.sales.interfaces.repositories import BaseDealRepository
 from domain.sales.value_objects.deals import (
     CurrencyValueObject,
@@ -83,3 +85,15 @@ class DealService:
         deal.stage = new_stage_vo
         await self.deal_repository.update(deal)
         return deal, old_stage
+
+    async def get_deal_list(
+        self,
+        filters: DealFilters,
+    ) -> Iterable[DealEntity]:
+        return await self.deal_repository.get_list(filters)
+
+    async def get_deal_count(
+        self,
+        filters: DealFilters,
+    ) -> int:
+        return await self.deal_repository.get_count(filters)

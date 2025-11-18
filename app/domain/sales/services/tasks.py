@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date
 from uuid import UUID
@@ -8,6 +9,7 @@ from domain.sales.exceptions.sales import (
     DealNotFoundException,
     TaskNotFoundException,
 )
+from domain.sales.filters import TaskFilters
 from domain.sales.interfaces.repositories import (
     BaseDealRepository,
     BaseTaskRepository,
@@ -86,3 +88,15 @@ class TaskService:
 
         await self.task_repository.update(task)
         return task
+
+    async def get_task_list(
+        self,
+        filters: TaskFilters,
+    ) -> Iterable[TaskEntity]:
+        return await self.task_repository.get_list(filters)
+
+    async def get_task_count(
+        self,
+        filters: TaskFilters,
+    ) -> int:
+        return await self.task_repository.get_count(filters)

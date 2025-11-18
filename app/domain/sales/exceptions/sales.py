@@ -167,6 +167,21 @@ class DealStageRollbackNotAllowedException(SalesException):
         )
 
 
+@dataclass(eq=False)
+class ContactOrganizationMismatchException(SalesException):
+    contact_id: UUID
+    contact_organization_id: UUID
+    deal_organization_id: UUID
+
+    @property
+    def message(self) -> str:
+        return (
+            f"Contact {self.contact_id} belongs to organization {self.contact_organization_id}, "
+            f"but deal belongs to organization {self.deal_organization_id}. "
+            f"Contact and deal must belong to the same organization"
+        )
+
+
 # Task exceptions
 @dataclass(eq=False)
 class EmptyTaskTitleException(SalesException):

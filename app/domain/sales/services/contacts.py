@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -6,6 +7,7 @@ from domain.sales.exceptions.sales import (
     ContactHasActiveDealsException,
     ContactNotFoundException,
 )
+from domain.sales.filters import ContactFilters
 from domain.sales.interfaces.repositories import (
     BaseContactRepository,
     BaseDealRepository,
@@ -61,3 +63,15 @@ class ContactService:
             raise ContactHasActiveDealsException(contact_id=contact_id)
 
         await self.contact_repository.delete(contact_id)
+
+    async def get_contact_list(
+        self,
+        filters: ContactFilters,
+    ) -> Iterable[ContactEntity]:
+        return await self.contact_repository.get_list(filters)
+
+    async def get_contact_count(
+        self,
+        filters: ContactFilters,
+    ) -> int:
+        return await self.contact_repository.get_count(filters)
