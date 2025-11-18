@@ -97,3 +97,15 @@ class DealService:
         filters: DealFilters,
     ) -> int:
         return await self.deal_repository.get_count(filters)
+
+    async def get_total_amount(
+        self,
+        organization_id: UUID,
+        status: DealStatus,
+        user_id: UUID | None = None,
+    ) -> float:
+        return await self.deal_repository.get_total_amount(
+            organization_id=organization_id,
+            status=status,
+            user_id=user_id,
+        )

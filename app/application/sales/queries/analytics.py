@@ -12,7 +12,7 @@ from domain.sales.filters import (
     DealFunnelFilters,
     DealSummaryFilters,
 )
-from domain.sales.interfaces.repositories import BaseDealRepository
+from domain.sales.services import DealService
 from domain.sales.value_objects.deals import (
     DealStage,
     DealStatus,
@@ -56,14 +56,13 @@ class GetDealFunnelQuery(BaseQuery):
 class GetDealSummaryQueryHandler(
     BaseQueryHandler[GetDealSummaryQuery, DealSummaryResult],
 ):
-    deal_repository: BaseDealRepository
+    deal_service: DealService
 
     def _build_status_filters(
         self,
         organization_id: UUID,
         status: DealStatus,
         user_id: UUID | None,
-        user_role: str,
         created_after: datetime | None = None,
     ) -> DealFilters:
         filters = DealFilters(
@@ -100,9 +99,9 @@ class GetDealSummaryQueryHandler(
             if status_enums:
                 base_filters.status = status_enums
 
-        total_count = await self.deal_repository.get_count(base_filters)
+        total_count = await self.deal_service.get_deal_count(base_filters)
 
-        new_count = await self.deal_repository.get_count(
+        new_count = await self.deal_service.get_deal_count(
             self._build_status_filters(
                 query.filters.organization_id,
                 DealStatus.NEW,
@@ -111,7 +110,7 @@ class GetDealSummaryQueryHandler(
             ),
         )
 
-        in_progress_count = await self.deal_repository.get_count(
+        in_progress_count = await self.deal_service.get_deal_count(
             self._build_status_filters(
                 query.filters.organization_id,
                 DealStatus.IN_PROGRESS,
@@ -120,7 +119,7 @@ class GetDealSummaryQueryHandler(
             ),
         )
 
-        won_count = await self.deal_repository.get_count(
+        won_count = await self.deal_service.get_deal_count(
             self._build_status_filters(
                 query.filters.organization_id,
                 DealStatus.WON,
@@ -129,7 +128,7 @@ class GetDealSummaryQueryHandler(
             ),
         )
 
-        lost_count = await self.deal_repository.get_count(
+        lost_count = await self.deal_service.get_deal_count(
             self._build_status_filters(
                 query.filters.organization_id,
                 DealStatus.LOST,
@@ -138,7 +137,7 @@ class GetDealSummaryQueryHandler(
             ),
         )
 
-        total_won_amount = await self.deal_repository.get_total_amount(
+        total_won_amount = await self.deal_service.get_total_amount(
             organization_id=query.filters.organization_id,
             status=DealStatus.WON,
             user_id=user_id,
@@ -146,7 +145,7 @@ class GetDealSummaryQueryHandler(
 
         new_deals_count = None
         if query.filters.created_after:
-            new_deals_count = await self.deal_repository.get_count(
+            new_deals_count = await self.deal_service.get_deal_count(
                 self._build_status_filters(
                     query.filters.organization_id,
                     DealStatus.NEW,
@@ -171,7 +170,7 @@ class GetDealSummaryQueryHandler(
 class GetDealFunnelQueryHandler(
     BaseQueryHandler[GetDealFunnelQuery, DealFunnelResult],
 ):
-    deal_repository: BaseDealRepository
+    deal_service: DealService
 
     def _build_status_enums(self, status_list: list[str] | None) -> list[DealStatus] | None:
         if not status_list:
@@ -216,7 +215,7 @@ class GetDealFunnelQueryHandler(
             query.user_role,
             query.filters.status,
         )
-        qualification_count = await self.deal_repository.get_count(qualification_filters)
+        qualification_count = await self.deal_service.get_deal_count(qualification_filters)
 
         proposal_filters = self._build_stage_filters(
             query.filters.organization_id,
@@ -225,7 +224,7 @@ class GetDealFunnelQueryHandler(
             query.user_role,
             query.filters.status,
         )
-        proposal_count = await self.deal_repository.get_count(proposal_filters)
+        proposal_count = await self.deal_service.get_deal_count(proposal_filters)
 
         negotiation_filters = self._build_stage_filters(
             query.filters.organization_id,
@@ -234,7 +233,7 @@ class GetDealFunnelQueryHandler(
             query.user_role,
             query.filters.status,
         )
-        negotiation_count = await self.deal_repository.get_count(negotiation_filters)
+        negotiation_count = await self.deal_service.get_deal_count(negotiation_filters)
 
         closed_filters = self._build_stage_filters(
             query.filters.organization_id,
@@ -243,7 +242,7 @@ class GetDealFunnelQueryHandler(
             query.user_role,
             query.filters.status,
         )
-        closed_count = await self.deal_repository.get_count(closed_filters)
+        closed_count = await self.deal_service.get_deal_count(closed_filters)
 
         return DealFunnelResult(
             qualification_count=qualification_count,
