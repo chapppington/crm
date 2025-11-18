@@ -22,7 +22,7 @@ from application.users.commands import CreateUserCommand
 from application.users.queries import AuthenticateUserQuery
 
 
-router = APIRouter(prefix="/user", tags=["user"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post(

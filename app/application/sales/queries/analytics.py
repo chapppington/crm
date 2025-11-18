@@ -106,7 +106,7 @@ class GetDealSummaryQueryHandler(
                 query.filters.organization_id,
                 DealStatus.NEW,
                 user_id,
-                query.user_role,
+                query.filters.created_after,
             ),
         )
 
@@ -115,7 +115,7 @@ class GetDealSummaryQueryHandler(
                 query.filters.organization_id,
                 DealStatus.IN_PROGRESS,
                 user_id,
-                query.user_role,
+                query.filters.created_after,
             ),
         )
 
@@ -124,7 +124,7 @@ class GetDealSummaryQueryHandler(
                 query.filters.organization_id,
                 DealStatus.WON,
                 user_id,
-                query.user_role,
+                query.filters.created_after,
             ),
         )
 
@@ -133,7 +133,7 @@ class GetDealSummaryQueryHandler(
                 query.filters.organization_id,
                 DealStatus.LOST,
                 user_id,
-                query.user_role,
+                query.filters.created_after,
             ),
         )
 
@@ -150,7 +150,6 @@ class GetDealSummaryQueryHandler(
                     query.filters.organization_id,
                     DealStatus.NEW,
                     user_id,
-                    query.user_role,
                     query.filters.created_after,
                 ),
             )

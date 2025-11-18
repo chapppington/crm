@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import pytest
+import pytest_asyncio
 from faker import Faker
 from presentation.api.auth import auth_service
 from presentation.api.main import create_app
@@ -13,8 +14,16 @@ from application.organizations.commands import (
     AddMemberCommand,
     CreateOrganizationCommand,
 )
+from application.sales.commands import (
+    CreateContactCommand,
+    CreateDealCommand,
+)
 from application.users.commands import CreateUserCommand
 from domain.organizations.entities import OrganizationEntity
+from domain.sales.entities import (
+    ContactEntity,
+    DealEntity,
+)
 from domain.users.entities import UserEntity
 from tests.fixtures import init_dummy_container
 
@@ -42,7 +51,7 @@ def mediator(container: Container) -> Mediator:
     return container.resolve(Mediator)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def authenticated_user(mediator: Mediator, faker: Faker) -> UserEntity:
     email = faker.email()
     password = faker.password(length=12)
@@ -55,7 +64,7 @@ async def authenticated_user(mediator: Mediator, faker: Faker) -> UserEntity:
     return result
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def authenticated_client(
     client: TestClient,
     authenticated_user: UserEntity,
@@ -70,7 +79,7 @@ async def authenticated_client(
     return client
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def organization_with_member(
     mediator: Mediator,
     authenticated_user: UserEntity,
@@ -90,3 +99,53 @@ async def organization_with_member(
     )
 
     return organization
+
+
+@pytest_asyncio.fixture
+async def org_client(
+    authenticated_client: TestClient,
+    organization_with_member: OrganizationEntity,
+) -> TestClient:
+    authenticated_client.headers.update(
+        {"X-Organization-Id": str(organization_with_member.oid)},
+    )
+    return authenticated_client
+
+
+@pytest_asyncio.fixture
+async def contact(
+    mediator: Mediator,
+    organization_with_member: OrganizationEntity,
+    authenticated_user: UserEntity,
+    faker: Faker,
+) -> ContactEntity:
+    result, *_ = await mediator.handle_command(
+        CreateContactCommand(
+            organization_id=organization_with_member.oid,
+            owner_user_id=authenticated_user.oid,
+            name=faker.name(),
+            email=faker.email(),
+        ),
+    )
+    return result
+
+
+@pytest_asyncio.fixture
+async def deal(
+    mediator: Mediator,
+    organization_with_member: OrganizationEntity,
+    authenticated_user: UserEntity,
+    contact: ContactEntity,
+    faker: Faker,
+) -> DealEntity:
+    result, *_ = await mediator.handle_command(
+        CreateDealCommand(
+            organization_id=organization_with_member.oid,
+            contact_id=contact.oid,
+            owner_user_id=authenticated_user.oid,
+            title=faker.sentence(),
+            amount=1000.0,
+            currency="USD",
+        ),
+    )
+    return result
