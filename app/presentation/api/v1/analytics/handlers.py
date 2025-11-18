@@ -14,7 +14,10 @@ from presentation.api.dependencies import (
     get_organization_member,
     init_container,
 )
-from presentation.api.schemas import ApiResponse
+from presentation.api.schemas import (
+    ApiResponse,
+    ErrorResponseSchema,
+)
 from presentation.api.v1.analytics.schemas import (
     DealFunnelResponseSchema,
     DealSummaryResponseSchema,
@@ -41,6 +44,9 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
     response_model=ApiResponse[DealSummaryResponseSchema],
     responses={
         status.HTTP_200_OK: {"model": ApiResponse[DealSummaryResponseSchema]},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_403_FORBIDDEN: {"model": ErrorResponseSchema},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponseSchema},
     },
 )
 async def get_deal_summary(
@@ -79,6 +85,9 @@ async def get_deal_summary(
     response_model=ApiResponse[DealFunnelResponseSchema],
     responses={
         status.HTTP_200_OK: {"model": ApiResponse[DealFunnelResponseSchema]},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_403_FORBIDDEN: {"model": ErrorResponseSchema},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponseSchema},
     },
 )
 async def get_deal_funnel(

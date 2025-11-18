@@ -13,7 +13,10 @@ from presentation.api.dependencies import (
     get_organization_member,
 )
 from presentation.api.filters import PaginationOut
-from presentation.api.schemas import ApiResponse
+from presentation.api.schemas import (
+    ApiResponse,
+    ErrorResponseSchema,
+)
 from presentation.api.v1.deals.schemas import (
     CreateDealRequestSchema,
     DealListResponseSchema,
@@ -44,6 +47,9 @@ router = APIRouter(prefix="/deals", tags=["deals"])
     response_model=ApiResponse[DealListResponseSchema],
     responses={
         status.HTTP_200_OK: {"model": ApiResponse[DealListResponseSchema]},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_403_FORBIDDEN: {"model": ErrorResponseSchema},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponseSchema},
     },
 )
 async def get_deals(
@@ -107,6 +113,11 @@ async def get_deals(
     response_model=ApiResponse[DealResponseSchema],
     responses={
         status.HTTP_201_CREATED: {"model": ApiResponse[DealResponseSchema]},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorResponseSchema},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_403_FORBIDDEN: {"model": ErrorResponseSchema},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorResponseSchema},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponseSchema},
     },
 )
 async def create_deal(
@@ -140,6 +151,9 @@ async def create_deal(
     response_model=ApiResponse[DealResponseSchema],
     responses={
         status.HTTP_200_OK: {"model": ApiResponse[DealResponseSchema]},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_403_FORBIDDEN: {"model": ErrorResponseSchema},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorResponseSchema},
     },
 )
 async def get_deal(
@@ -172,7 +186,11 @@ async def get_deal(
     response_model=ApiResponse[DealResponseSchema],
     responses={
         status.HTTP_200_OK: {"model": ApiResponse[DealResponseSchema]},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid status or stage transition"},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorResponseSchema},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_403_FORBIDDEN: {"model": ErrorResponseSchema},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorResponseSchema},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponseSchema},
     },
 )
 async def update_deal(

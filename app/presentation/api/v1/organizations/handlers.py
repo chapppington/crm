@@ -7,7 +7,10 @@ from fastapi import (
 )
 
 from presentation.api.dependencies import get_current_user_id
-from presentation.api.schemas import ApiResponse
+from presentation.api.schemas import (
+    ApiResponse,
+    ErrorResponseSchema,
+)
 from presentation.api.v1.organizations.schemas import (
     CreateOrganizationRequestSchema,
     GetUserOrganizationsResponseSchema,
@@ -33,6 +36,9 @@ router = APIRouter(prefix="/organizations", tags=["organizations"])
     response_model=ApiResponse[OrganizationResponseSchema],
     responses={
         status.HTTP_201_CREATED: {"model": ApiResponse[OrganizationResponseSchema]},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorResponseSchema},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponseSchema},
     },
 )
 async def create_organization(
@@ -67,6 +73,7 @@ async def create_organization(
     response_model=ApiResponse[GetUserOrganizationsResponseSchema],
     responses={
         status.HTTP_200_OK: {"model": ApiResponse[GetUserOrganizationsResponseSchema]},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
     },
 )
 async def get_user_organizations(

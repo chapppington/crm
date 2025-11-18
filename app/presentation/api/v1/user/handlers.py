@@ -7,7 +7,10 @@ from fastapi import (
 
 from presentation.api.auth import auth_service
 from presentation.api.dependencies import get_refresh_token_payload
-from presentation.api.schemas import ApiResponse
+from presentation.api.schemas import (
+    ApiResponse,
+    ErrorResponseSchema,
+)
 from presentation.api.v1.user.schemas import (
     LoginRequestSchema,
     RefreshTokenResponseSchema,
@@ -31,6 +34,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     response_model=ApiResponse[UserResponseSchema],
     responses={
         status.HTTP_201_CREATED: {"model": ApiResponse[UserResponseSchema]},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorResponseSchema},
+        status.HTTP_409_CONFLICT: {"model": ErrorResponseSchema},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponseSchema},
     },
 )
 async def register(
@@ -58,6 +64,9 @@ async def register(
     response_model=ApiResponse[TokenResponseSchema],
     responses={
         status.HTTP_200_OK: {"model": ApiResponse[TokenResponseSchema]},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorResponseSchema},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponseSchema},
     },
 )
 async def login(
@@ -98,6 +107,7 @@ async def login(
     response_model=ApiResponse[RefreshTokenResponseSchema],
     responses={
         status.HTTP_200_OK: {"model": ApiResponse[RefreshTokenResponseSchema]},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
     },
 )
 async def refresh_token(

@@ -13,7 +13,10 @@ from presentation.api.dependencies import (
     get_organization_member,
 )
 from presentation.api.filters import PaginationOut
-from presentation.api.schemas import ApiResponse
+from presentation.api.schemas import (
+    ApiResponse,
+    ErrorResponseSchema,
+)
 from presentation.api.v1.contacts.schemas import (
     ContactListResponseSchema,
     ContactResponseSchema,
@@ -43,6 +46,9 @@ router = APIRouter(prefix="/contacts", tags=["contacts"])
     response_model=ApiResponse[ContactListResponseSchema],
     responses={
         status.HTTP_200_OK: {"model": ApiResponse[ContactListResponseSchema]},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_403_FORBIDDEN: {"model": ErrorResponseSchema},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponseSchema},
     },
 )
 async def get_contacts(
@@ -97,6 +103,10 @@ async def get_contacts(
     response_model=ApiResponse[ContactResponseSchema],
     responses={
         status.HTTP_201_CREATED: {"model": ApiResponse[ContactResponseSchema]},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorResponseSchema},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_403_FORBIDDEN: {"model": ErrorResponseSchema},
+        status.HTTP_422_UNPROCESSABLE_CONTENT: {"model": ErrorResponseSchema},
     },
 )
 async def create_contact(
@@ -130,6 +140,9 @@ async def create_contact(
     response_model=ApiResponse[ContactResponseSchema],
     responses={
         status.HTTP_200_OK: {"model": ApiResponse[ContactResponseSchema]},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_403_FORBIDDEN: {"model": ErrorResponseSchema},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorResponseSchema},
     },
 )
 async def get_contact(
@@ -161,7 +174,10 @@ async def get_contact(
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Contact deleted successfully"},
-        status.HTTP_409_CONFLICT: {"description": "Contact has active deals"},
+        status.HTTP_401_UNAUTHORIZED: {"model": ErrorResponseSchema},
+        status.HTTP_403_FORBIDDEN: {"model": ErrorResponseSchema},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorResponseSchema},
+        status.HTTP_409_CONFLICT: {"model": ErrorResponseSchema},
     },
 )
 async def delete_contact(
