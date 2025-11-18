@@ -127,8 +127,7 @@ async def create_deal(
         currency=request.currency,
     )
 
-    results = await mediator.handle_command(command)
-    deal = results[0]
+    deal, *_ = await mediator.handle_command(command)
 
     return ApiResponse[DealResponseSchema](
         data=DealResponseSchema.from_entity(deal),
@@ -196,7 +195,7 @@ async def update_deal(
         new_status=request.status,
         new_stage=request.stage,
     )
-    deal = await mediator.handle_command(command)
+    deal, *_ = await mediator.handle_command(command)
 
     return ApiResponse[DealResponseSchema](
         data=DealResponseSchema.from_entity(deal),

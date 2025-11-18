@@ -73,7 +73,12 @@ async def test_create_activity_command_success(
     assert activity.oid is not None
 
     activities = await mediator.handle_query(
-        GetActivitiesByDealIdQuery(deal_id=deal_id),
+        GetActivitiesByDealIdQuery(
+            deal_id=deal_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     activities_list = list(activities)
@@ -206,8 +211,11 @@ async def test_create_comment_activity_command_success(
     result, *_ = await mediator.handle_command(
         CreateCommentActivityCommand(
             deal_id=deal_id,
-            author_user_id=owner_user_id,
             text=comment_text,
+            author_user_id=owner_user_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
         ),
     )
 
@@ -221,7 +229,12 @@ async def test_create_comment_activity_command_success(
     assert activity.oid is not None
 
     activities = await mediator.handle_query(
-        GetActivitiesByDealIdQuery(deal_id=deal_id),
+        GetActivitiesByDealIdQuery(
+            deal_id=deal_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     activities_list = list(activities)

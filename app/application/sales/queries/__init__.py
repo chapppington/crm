@@ -2,6 +2,12 @@ from application.sales.queries.activities import (
     GetActivitiesByDealIdQuery,
     GetActivitiesByDealIdQueryHandler,
 )
+from application.sales.queries.analytics import (
+    GetDealFunnelQuery,
+    GetDealFunnelQueryHandler,
+    GetDealSummaryQuery,
+    GetDealSummaryQueryHandler,
+)
 from application.sales.queries.contacts import (
     GetContactByIdQuery,
     GetContactByIdQueryHandler,
@@ -33,6 +39,10 @@ __all__ = [
     "GetDealByIdQueryHandler",
     "GetDealsQuery",
     "GetDealsQueryHandler",
+    "GetDealSummaryQuery",
+    "GetDealSummaryQueryHandler",
+    "GetDealFunnelQuery",
+    "GetDealFunnelQueryHandler",
     "GetTaskByIdQuery",
     "GetTaskByIdQueryHandler",
     "GetTasksQuery",

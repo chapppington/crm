@@ -18,6 +18,7 @@ from sqlalchemy.sql import Select
 from domain.sales.entities.deals import DealEntity
 from domain.sales.filters.deals import DealFilters
 from domain.sales.interfaces.repositories.deals import BaseDealRepository
+from domain.sales.value_objects.deals import DealStatus
 
 
 @dataclass
@@ -154,3 +155,20 @@ class SQLAlchemyDealRepository(BaseDealRepository):
 
             res = await session.execute(stmt)
             return res.scalar_one() or 0
+
+    async def get_total_amount(
+        self,
+        organization_id: UUID,
+        status: DealStatus,
+        user_id: UUID | None = None,
+    ) -> float:
+        async with self.database.get_read_only_session() as session:
+            stmt = select(func.coalesce(func.sum(DealModel.amount), 0))
+            stmt = stmt.where(DealModel.organization_id == organization_id)
+            stmt = stmt.where(DealModel.status == status.value)
+            if user_id:
+                stmt = stmt.where(DealModel.owner_id == user_id)
+
+            res = await session.execute(stmt)
+            result = res.scalar_one()
+            return float(result) if result else 0.0

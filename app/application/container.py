@@ -59,8 +59,12 @@ from application.sales.queries import (
     GetContactsQueryHandler,
     GetDealByIdQuery,
     GetDealByIdQueryHandler,
+    GetDealFunnelQuery,
+    GetDealFunnelQueryHandler,
     GetDealsQuery,
     GetDealsQueryHandler,
+    GetDealSummaryQuery,
+    GetDealSummaryQueryHandler,
     GetTaskByIdQuery,
     GetTaskByIdQueryHandler,
     GetTasksQuery,
@@ -202,6 +206,8 @@ def _init_container() -> Container:
     # Sales - Deals
     container.register(GetDealByIdQueryHandler)
     container.register(GetDealsQueryHandler)
+    container.register(GetDealSummaryQueryHandler)
+    container.register(GetDealFunnelQueryHandler)
 
     # Sales - Tasks
     container.register(GetTaskByIdQueryHandler)
@@ -322,6 +328,14 @@ def _init_container() -> Container:
         mediator.register_query(
             GetDealsQuery,
             container.resolve(GetDealsQueryHandler),
+        )
+        mediator.register_query(
+            GetDealSummaryQuery,
+            container.resolve(GetDealSummaryQueryHandler),
+        )
+        mediator.register_query(
+            GetDealFunnelQuery,
+            container.resolve(GetDealFunnelQueryHandler),
         )
 
         # Sales - Tasks

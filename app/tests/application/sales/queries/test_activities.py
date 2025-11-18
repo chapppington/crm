@@ -58,13 +58,21 @@ async def test_get_activities_by_deal_id_success(
     activity2_result, *_ = await mediator.handle_command(
         CreateCommentActivityCommand(
             deal_id=deal_id,
-            author_user_id=owner_user_id,
             text=faker.text(),
+            author_user_id=owner_user_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
         ),
     )
 
     activities = await mediator.handle_query(
-        GetActivitiesByDealIdQuery(deal_id=deal_id),
+        GetActivitiesByDealIdQuery(
+            deal_id=deal_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     activities_list = list(activities)
@@ -108,7 +116,12 @@ async def test_get_activities_by_deal_id_empty(
     deal_id = deal_result.oid
 
     activities = await mediator.handle_query(
-        GetActivitiesByDealIdQuery(deal_id=deal_id),
+        GetActivitiesByDealIdQuery(
+            deal_id=deal_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     activities_list = list(activities)
@@ -168,13 +181,21 @@ async def test_get_activities_by_deal_id_multiple_types(
     await mediator.handle_command(
         CreateCommentActivityCommand(
             deal_id=deal_id,
-            author_user_id=owner_user_id,
             text=faker.text(),
+            author_user_id=owner_user_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
         ),
     )
 
     activities = await mediator.handle_query(
-        GetActivitiesByDealIdQuery(deal_id=deal_id),
+        GetActivitiesByDealIdQuery(
+            deal_id=deal_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     activities_list = list(activities)

@@ -8,6 +8,7 @@ from uuid import UUID
 from domain.sales.entities.deals import DealEntity
 from domain.sales.filters.deals import DealFilters
 from domain.sales.interfaces.repositories.deals import BaseDealRepository
+from domain.sales.value_objects.deals import DealStatus
 
 
 @dataclass
@@ -90,3 +91,18 @@ class DummyInMemoryDealRepository(BaseDealRepository):
     ) -> int:
         result = self._filter_items(self._saved_deals, filters)
         return len(result)
+
+    async def get_total_amount(
+        self,
+        organization_id: UUID,
+        status: DealStatus,
+        user_id: UUID | None = None,
+    ) -> float:
+        filters = DealFilters(
+            organization_id=organization_id,
+            status=[status],
+        )
+        if user_id:
+            filters.owner_id = user_id
+        result = self._filter_items(self._saved_deals, filters)
+        return sum(deal.amount.as_generic_type() for deal in result)

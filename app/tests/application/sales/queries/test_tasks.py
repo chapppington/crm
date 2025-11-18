@@ -60,6 +60,9 @@ async def test_get_task_by_id_success(
         CreateTaskCommand(
             deal_id=deal_id,
             title=task_title,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
             description=faker.text(),
             due_date=date.today() + timedelta(days=1),
         ),
@@ -67,7 +70,12 @@ async def test_get_task_by_id_success(
     created_task: TaskEntity = task_result
 
     retrieved_task = await mediator.handle_query(
-        GetTaskByIdQuery(task_id=created_task.oid),
+        GetTaskByIdQuery(
+            task_id=created_task.oid,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     assert retrieved_task.oid == created_task.oid
@@ -79,11 +87,21 @@ async def test_get_task_by_id_success(
 async def test_get_task_by_id_not_found(
     mediator: Mediator,
 ):
+    org_result, *_ = await mediator.handle_command(
+        CreateOrganizationCommand(name="Test Org"),
+    )
+    organization_id = org_result.oid
+    user_id = uuid4()
     non_existent_id = uuid4()
 
     with pytest.raises(TaskNotFoundException) as exc_info:
         await mediator.handle_query(
-            GetTaskByIdQuery(task_id=non_existent_id),
+            GetTaskByIdQuery(
+                task_id=non_existent_id,
+                organization_id=organization_id,
+                user_id=user_id,
+                user_role="owner",
+            ),
         )
 
     assert exc_info.value.task_id == non_existent_id
@@ -125,6 +143,9 @@ async def test_get_tasks_query_success(
         CreateTaskCommand(
             deal_id=deal_id,
             title=faker.sentence(),
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
             description=faker.text(),
             due_date=date.today() + timedelta(days=1),
         ),
@@ -134,13 +155,22 @@ async def test_get_tasks_query_success(
         CreateTaskCommand(
             deal_id=deal_id,
             title=faker.sentence(),
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
             description=faker.text(),
             due_date=date.today() + timedelta(days=2),
         ),
     )
 
     filters = TaskFilters(organization_id=organization_id)
-    tasks, count = await mediator.handle_query(GetTasksQuery(filters=filters))
+    tasks, count = await mediator.handle_query(
+        GetTasksQuery(
+            filters=filters,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
+    )
 
     tasks_list = list(tasks)
     assert count >= 2
@@ -199,6 +229,9 @@ async def test_get_tasks_query_with_deal_id_filter(
         CreateTaskCommand(
             deal_id=deal1_id,
             title=faker.sentence(),
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
             description=faker.text(),
             due_date=date.today() + timedelta(days=1),
         ),
@@ -208,13 +241,22 @@ async def test_get_tasks_query_with_deal_id_filter(
         CreateTaskCommand(
             deal_id=deal2_id,
             title=faker.sentence(),
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
             description=faker.text(),
             due_date=date.today() + timedelta(days=1),
         ),
     )
 
     filters = TaskFilters(organization_id=organization_id, deal_id=deal1_id)
-    tasks, count = await mediator.handle_query(GetTasksQuery(filters=filters))
+    tasks, count = await mediator.handle_query(
+        GetTasksQuery(
+            filters=filters,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
+    )
 
     tasks_list = list(tasks)
     assert count >= 1
@@ -258,13 +300,22 @@ async def test_get_tasks_query_with_pagination(
             CreateTaskCommand(
                 deal_id=deal_id,
                 title=faker.sentence(),
+                organization_id=organization_id,
+                user_id=owner_user_id,
+                user_role="owner",
                 description=faker.text(),
                 due_date=date.today() + timedelta(days=1),
             ),
         )
 
     filters = TaskFilters(organization_id=organization_id, page=1, page_size=2)
-    tasks, count = await mediator.handle_query(GetTasksQuery(filters=filters))
+    tasks, count = await mediator.handle_query(
+        GetTasksQuery(
+            filters=filters,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
+    )
 
     tasks_list = list(tasks)
     assert count >= 3

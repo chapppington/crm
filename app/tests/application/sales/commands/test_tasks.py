@@ -63,6 +63,9 @@ async def test_create_task_command_success(
         CreateTaskCommand(
             deal_id=deal_id,
             title=task_title,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
             description=task_description,
             due_date=task_due_date,
         ),
@@ -79,7 +82,12 @@ async def test_create_task_command_success(
     assert task.oid is not None
 
     retrieved_task = await mediator.handle_query(
-        GetTaskByIdQuery(task_id=task.oid),
+        GetTaskByIdQuery(
+            task_id=task.oid,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     assert retrieved_task.oid == task.oid
@@ -123,6 +131,9 @@ async def test_create_task_command_empty_title(
             CreateTaskCommand(
                 deal_id=deal_id,
                 title="",
+                organization_id=organization_id,
+                user_id=owner_user_id,
+                user_role="owner",
                 description=faker.text(),
                 due_date=date.today() + timedelta(days=1),
             ),
@@ -168,6 +179,9 @@ async def test_create_task_command_past_due_date(
             CreateTaskCommand(
                 deal_id=deal_id,
                 title=faker.sentence(),
+                organization_id=organization_id,
+                user_id=owner_user_id,
+                user_role="owner",
                 description=faker.text(),
                 due_date=past_date,
             ),
@@ -215,6 +229,9 @@ async def test_create_task_command_today_due_date(
         CreateTaskCommand(
             deal_id=deal_id,
             title=faker.sentence(),
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
             description=faker.text(),
             due_date=today,
         ),
@@ -260,6 +277,9 @@ async def test_update_task_command_success(
         CreateTaskCommand(
             deal_id=deal_id,
             title=faker.sentence(),
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
             description=faker.text(),
             due_date=date.today() + timedelta(days=1),
         ),
@@ -273,6 +293,9 @@ async def test_update_task_command_success(
     await mediator.handle_command(
         UpdateTaskCommand(
             task_id=task_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
             title=new_title,
             description=new_description,
             due_date=new_due_date,
@@ -281,7 +304,12 @@ async def test_update_task_command_success(
     )
 
     updated_task = await mediator.handle_query(
-        GetTaskByIdQuery(task_id=task_id),
+        GetTaskByIdQuery(
+            task_id=task_id,
+            organization_id=organization_id,
+            user_id=owner_user_id,
+            user_role="owner",
+        ),
     )
 
     assert updated_task.title.as_generic_type() == new_title

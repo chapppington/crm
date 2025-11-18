@@ -7,6 +7,7 @@ from uuid import UUID
 
 from domain.sales.entities import DealEntity
 from domain.sales.filters import DealFilters
+from domain.sales.value_objects.deals import DealStatus
 
 
 class BaseDealRepository(ABC):
@@ -33,3 +34,11 @@ class BaseDealRepository(ABC):
         self,
         filters: DealFilters,
     ) -> int: ...
+
+    @abstractmethod
+    async def get_total_amount(
+        self,
+        organization_id: UUID,
+        status: DealStatus,
+        user_id: UUID | None = None,
+    ) -> float: ...
