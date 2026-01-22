@@ -1,3 +1,4 @@
+from presentation.admin.auth_provider import JWTAuthProvider
 from presentation.admin.views.activities import ActivityView
 from presentation.admin.views.contacts import ContactView
 from presentation.admin.views.deals import DealView
@@ -25,6 +26,7 @@ def setup_admin(app) -> None:
         engine,
         title="CRM Admin",
         i18n_config=I18nConfig(default_locale="ru"),
+        auth_provider=JWTAuthProvider(),
     )
 
     admin.add_view(UserView())
