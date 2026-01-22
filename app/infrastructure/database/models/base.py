@@ -1,5 +1,8 @@
 import datetime
-from uuid import UUID
+from uuid import (
+    UUID,
+    uuid4,
+)
 
 from sqlalchemy import sql
 from sqlalchemy.dialects.postgresql import UUID as UUIDType
@@ -31,13 +34,19 @@ class BaseModel(DeclarativeBase):
 class TimedBaseModel(BaseModel):
     __abstract__ = True
 
-    oid: Mapped[UUID] = mapped_column(UUIDType[UUID](as_uuid=True), primary_key=True)
+    oid: Mapped[UUID] = mapped_column(
+        UUIDType[UUID](as_uuid=True),
+        primary_key=True,
+        default=uuid4,
+    )
     created_at: Mapped[datetime.datetime] = mapped_column(
         nullable=False,
         server_default=sql.func.now(),
+        comment="Дата создания",
     )
     updated_at: Mapped[datetime.datetime] = mapped_column(
         nullable=False,
         server_default=sql.func.now(),
         onupdate=sql.func.now(),
+        comment="Дата обновления",
     )
