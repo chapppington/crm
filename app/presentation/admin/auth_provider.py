@@ -17,7 +17,6 @@ from starlette_admin.exceptions import (
     LoginFailed,
 )
 
-from application.container import init_container
 from application.mediator import Mediator
 from application.users.queries import (
     AuthenticateUserQuery,
@@ -27,6 +26,10 @@ from domain.users.exceptions import InvalidCredentialsException
 
 
 class JWTAuthProvider(AuthProvider):
+    def __init__(self, mediator: Mediator):
+        super().__init__()
+        self.mediator = mediator
+
     async def login(
         self,
         username: str,
@@ -38,16 +41,13 @@ class JWTAuthProvider(AuthProvider):
         if not username or not password:
             raise FormValidationError({"username": "Email и пароль обязательны для заполнения"})
 
-        container = init_container()
-        mediator: Mediator = container.resolve(Mediator)
-
         try:
             query = AuthenticateUserQuery(
                 email=username,
                 password=password,
             )
 
-            user = await mediator.handle_query(query)
+            user = await self.mediator.handle_query(query)
 
             user_id = str(user.oid)
             access_token = auth_service.create_access_token(uid=user_id)
@@ -76,11 +76,8 @@ class JWTAuthProvider(AuthProvider):
 
             user_id = UUID(user_id_str)
 
-            container = init_container()
-            mediator: Mediator = container.resolve(Mediator)
-
             query = GetUserByIdQuery(user_id=user_id)
-            user = await mediator.handle_query(query)
+            user = await self.mediator.handle_query(query)
 
             request.state.user = {
                 "id": str(user.oid),

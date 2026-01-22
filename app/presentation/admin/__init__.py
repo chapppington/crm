@@ -11,12 +11,14 @@ from starlette_admin.contrib.sqla import Admin
 from starlette_admin.i18n import I18nConfig
 
 from application.container import init_container
+from application.mediator import Mediator
 from settings.config import Config
 
 
 def setup_admin(app) -> None:
     container = init_container()
     config = container.resolve(Config)
+    mediator = container.resolve(Mediator)
 
     sync_url = config.postgres_connection_uri.replace("+asyncpg", "+psycopg2")
 
@@ -26,7 +28,7 @@ def setup_admin(app) -> None:
         engine,
         title="CRM Admin",
         i18n_config=I18nConfig(default_locale="ru"),
-        auth_provider=JWTAuthProvider(),
+        auth_provider=JWTAuthProvider(mediator=mediator),
     )
 
     admin.add_view(UserView())
