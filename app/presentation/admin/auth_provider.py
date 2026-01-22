@@ -1,7 +1,10 @@
 from uuid import UUID
 
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import (
+    RedirectResponse,
+    Response,
+)
 
 from presentation.api.auth import auth_service
 from starlette_admin.auth import (
@@ -49,8 +52,6 @@ class JWTAuthProvider(AuthProvider):
             user_id = str(user.oid)
             access_token = auth_service.create_access_token(uid=user_id)
             refresh_token = auth_service.create_refresh_token(uid=user_id)
-
-            from starlette.responses import RedirectResponse
 
             next_url = request.query_params.get("next", "/admin/")
             redirect_response = RedirectResponse(url=next_url, status_code=303)
